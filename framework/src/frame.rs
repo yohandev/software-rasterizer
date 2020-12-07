@@ -2,6 +2,7 @@ use rayon::prelude::*;
 
 /// represents a framebuffer, which can be iterated and
 /// drawn to
+#[derive(Debug)]
 pub struct Frame<'a>
 {
     inner: &'a mut [u8],
