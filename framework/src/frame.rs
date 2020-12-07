@@ -10,6 +10,15 @@ pub struct Frame<'a>
 
 impl<'a> Frame<'a>
 {
+    /// create a new framebuffer
+    pub fn new(inner: &'a mut [u8], width: usize, height: usize) -> Self
+    {
+        debug_assert_eq!(inner.len() % 4, 0);
+        debug_assert_eq!(inner.len() / 4, width * height);
+
+        Self { inner, width, height }
+    }
+
     /// get this framebuffer's width, in pixels
     pub fn width(&self) -> usize
     {
