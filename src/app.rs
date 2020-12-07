@@ -3,7 +3,9 @@ use framework::*;
 #[derive(Debug, Default)]
 pub struct MyApp
 {
-    rect: DummyBitmap
+    rect: DummyBitmap,
+    x: isize,
+    y: f32,
 }
 
 impl App for MyApp
@@ -15,11 +17,14 @@ impl App for MyApp
             px.copy_from_slice(&[0xff, 0x00, 0xff, 0xff]);
         });
 
-        frame.paste(&self.rect, 80, 40);
+        frame.paste(&self.rect, self.x, self.y as isize);
     }
 
     fn update(&mut self, time: &Time)
     {
+        self.x = (f32::sin(time.elapsed().as_secs_f32()) * 400.0 + 200.0) as isize;
+        self.y += time.dt() * 10.0;
+
         println!("FPS: {:.1}", 1.0 / time.dt());
     }
 }
