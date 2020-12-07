@@ -50,8 +50,7 @@ pub fn run_instance<T: App>(mut state: T)
     };
 
     let mut input = WinitInputHelper::new();
-    //let mut time = Instant::now();
-    //let mut dt = 0.0;
+    let mut time = Time::new();
     
     events.run(move |evt, _, control_flow|
     {
@@ -88,17 +87,11 @@ pub fn run_instance<T: App>(mut state: T)
                 pixels.resize(size.width, size.height);
             }
 
-            // Update the FPS
-            //dt = time.elapsed().as_secs_f64();
-
             // update state
-            state.update();
+            state.update(time.update());
             
             // request a redraw
             window.request_redraw();
-
-            // reset delta time
-            //time = Instant::now();
         }
     });
 }

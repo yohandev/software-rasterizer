@@ -1,4 +1,4 @@
-use crate::Frame;
+use crate::{ Frame, Time };
 
 /// represents an application that can be run by the framework
 pub trait App: 'static
@@ -16,5 +16,5 @@ pub trait App: 'static
     fn render(&self, frame: Frame);
 
     /// update the state of the app
-    fn update(&mut self);
+    fn update(&mut self, time: Time);
 }
