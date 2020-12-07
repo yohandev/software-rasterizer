@@ -1,5 +1,7 @@
 use rayon::prelude::*;
 
+use crate::Bitmap;
+
 /// represents a framebuffer, which can be iterated and
 /// drawn to
 #[derive(Debug)]
@@ -20,30 +22,6 @@ impl<'a> Frame<'a>
         debug_assert_eq!(inner.len() / 4, width * height);
 
         Self { inner, width, height }
-    }
-
-    /// get this framebuffer's width, in pixels
-    pub fn width(&self) -> usize
-    {
-        self.width
-    }
-
-    /// get this framebuffer's height, in pixels
-    pub fn height(&self) -> usize
-    {
-        self.height
-    }
-
-    /// get the raw pixel bytes in this frame
-    pub fn pixels(&self) -> &[u8]
-    {
-        self.inner
-    }
-
-    /// get the raw pixel bytes in this frame, mutably
-    pub fn pixels_mut(&mut self) -> &mut [u8]
-    {
-        self.inner
     }
 
     /// returns an iterator over the pixels in this framebuffer
@@ -142,5 +120,32 @@ impl<'a> Frame<'a>
             .par_chunks_exact_mut(4)
             .enumerate()
             .map(move |(i, px)| (i % w, i / h, px))
+    }
+}
+
+impl<'a> Bitmap for Frame<'a>
+{
+    /// get this framebuffer's width, in pixels
+    fn width(&self) -> usize
+    {
+        self.width
+    }
+
+    /// get this framebuffer's height, in pixels
+    fn height(&self) -> usize
+    {
+        self.height
+    }
+
+    /// get the raw pixel bytes in this frame
+    fn pixels(&self) -> &[u8]
+    {
+        self.inner
+    }
+
+    /// get the raw pixel bytes in this frame, mutably
+    fn pixels_mut(&mut self) -> &mut [u8]
+    {
+        self.inner
     }
 }
