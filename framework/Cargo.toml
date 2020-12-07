@@ -1,8 +1,7 @@
 [package]
-name = "software-rasterizer"
+name = "framework"
 version = "0.1.0"
 authors = ["yohandev"]
 edition = "2018"
 
 [dependencies]
-framework = { path = "framework" }

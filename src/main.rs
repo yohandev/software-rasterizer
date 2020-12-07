@@ -1,4 +1,4 @@
-mod framework;
+// use framework::*;
 
 fn main()
 {
