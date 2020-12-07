@@ -1,3 +1,5 @@
+use rayon::prelude::*;
+
 /// represents a framebuffer, which can be iterated and
 /// drawn to
 pub struct Frame<'a>
@@ -46,7 +48,7 @@ impl<'a> Frame<'a>
     /// returns an iterator over the pixels in this framebuffer
     ///
     /// ```
-    /// for (x, y, pixel) in frame.iter_pixels_mut()
+    /// for (x, y, pixel) in frame.iter_pixels()
     /// {
     ///     if (*pixel[0] > 0)
     ///     {
@@ -88,6 +90,55 @@ impl<'a> Frame<'a>
 
         self.inner
             .chunks_exact_mut(4)
+            .enumerate()
+            .map(move |(i, px)| (i % w, i / h, px))
+    }
+
+    /// returns an parallel iterator over the pixels in this framebuffer
+    ///
+    /// ```
+    /// frame.par_iter_pixels().for_each(|(x, y, pixel)|
+    /// {
+    ///     if (*pixel[0] > 0)
+    ///     {
+    ///         println!("round some red!");
+    ///     }
+    /// });
+    ///```
+    pub fn par_iter_pixels(&self) -> impl ParallelIterator<Item = (usize, usize, &[u8])> + '_
+    {
+        let w = self.width;
+        let h = self.height;
+
+        self.inner
+            .par_chunks_exact(4)
+            .enumerate()
+            .map(move |(i, px)| (i % w, i / h, px))
+    }
+
+    /// returns a parallel, mutable iterator over the pixels in this framebuffer
+    ///
+    /// ```
+    /// frame.par_iter_pixels_mut().for_each(|(x, y, pixel)|
+    /// {
+    ///     // creates a black and white stripe pattern
+    ///     if x % 2 == 0
+    ///     {
+    ///         pixel.copy_from_slice(&[0xff, 0xff, 0xff, 0xff]);
+    ///     }
+    ///     else
+    ///     {
+    ///         pixel.copy_from_slice(&[0x00, 0x00, 0x00, 0xff]);
+    ///     }
+    /// });
+    ///```
+    pub fn par_iter_pixels_mut(&mut self) -> impl ParallelIterator<Item = (usize, usize, &mut [u8])> + '_
+    {
+        let w = self.width;
+        let h = self.height;
+
+        self.inner
+            .par_chunks_exact_mut(4)
             .enumerate()
             .map(move |(i, px)| (i % w, i / h, px))
     }
