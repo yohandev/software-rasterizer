@@ -13,8 +13,8 @@ pub trait App: 'static
     const HEIGHT: usize = 400;
 
     /// render to the window
-    fn render(&self, frame: Frame);
+    fn render(&self, frame: &mut Frame);
 
     /// update the state of the app
-    fn update(&mut self, time: Time);
+    fn update(&mut self, time: &Time);
 }

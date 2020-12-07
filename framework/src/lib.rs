@@ -58,10 +58,10 @@ pub fn run_instance<T: App>(mut state: T)
         if let Event::RedrawRequested(_) = evt
         {
             // get the frame
-            let frame = Frame::new(pixels.get_frame(), T::WIDTH, T::HEIGHT);
+            let mut frame = Frame::new(pixels.get_frame(), T::WIDTH, T::HEIGHT);
             
             // update buffer
-            state.render(frame);
+            state.render(&mut frame);
 
             // render
             if pixels.render().is_err()

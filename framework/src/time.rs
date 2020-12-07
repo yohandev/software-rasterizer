@@ -27,15 +27,15 @@ impl Time
         }
     }
 
-    /// updates this instance of Time and returns a clone
+    /// updates this instance of Time and returns itself
     /// to pass to App's update
-    pub(crate) fn update(&mut self) -> Self
+    pub(crate) fn update(&mut self) -> &Self
     {
         self.delta = self.start.elapsed();
         self.total += self.delta;
         self.start = Instant::now();
 
-        self.clone()
+        self
     }
 
     /// delta time between the beginnings of the last frame and
