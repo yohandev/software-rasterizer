@@ -13,16 +13,17 @@ pub trait Bitmap
 
     /// get the raw pixel bytes in this bitmap, mutably
     fn pixels_mut(&mut self) -> &mut [u8];
-}
+// }
 
-impl dyn Bitmap
-{
+// impl dyn Bitmap
+// {
     /// paste another bitmap on top of this one, clipping any invisible
     /// pixels and (optionally) translating it
     ///
     /// the source bitmap isn't affected
-    pub fn paste(&mut self, src: &impl Bitmap, dx: isize, dy: isize)
+    fn paste(&mut self, src: &impl Bitmap, dx: isize, dy: isize)
     {
+        // givens
         let dst_width = self.width() as isize;
         let dst_height = self.height() as isize;
 
@@ -48,8 +49,8 @@ impl dyn Bitmap
             let src_str = ((y * src_width * 4) + (src_x_min * 4)) as usize;
             let src_end = ((y * src_width * 4) + (src_x_max * 4)) as usize;
 
-            let dst_str = ((y * dst_width * 4) + (dst_x_min * 4)) as usize;
-            let dst_end = ((y * dst_width * 4) + (dst_x_max * 4)) as usize;
+            let dst_str = (((y + dy) * dst_width * 4) + (dst_x_min * 4)) as usize;
+            let dst_end = (((y + dy) * dst_width * 4) + (dst_x_max * 4)) as usize;
 
             // copy entire horizontal segments at once
             dst_buf[dst_str..dst_end].copy_from_slice(&src_buf[src_str..src_end]);
