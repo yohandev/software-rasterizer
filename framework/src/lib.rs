@@ -6,6 +6,8 @@ pub use frame::Frame;
 pub use time::Time;
 pub use app::App;
 
+pub use rayon::prelude::ParallelIterator;
+
 /// run the app, hyjacking the main thread until the
 /// window is closed
 pub fn run<T: App + Default>()
