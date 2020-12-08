@@ -11,7 +11,7 @@ impl App for MyApp
 {
     fn render(&self, frame: &mut Frame)
     {
-        Bitmap::par_iter_pixels_mut(frame).for_each(|(_, _, px)|
+        frame.par_iter_pixels_mut().for_each(|(_, _, px)|
         {
             px.copy_from_slice(&[0xff, 0x00, 0xff, 0xff]);
         });

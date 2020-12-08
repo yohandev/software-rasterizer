@@ -189,6 +189,31 @@ impl<T: Buf> Bitmap<T>
             dst_buf[dst_str..dst_end].copy_from_slice(&src_buf[src_str..src_end]);
         }
     }
+
+    /// draw a single pixel to this bitmap. nothing is drawn
+    /// if the pixel is out of bounds
+    pub fn draw(&mut self, x: isize, y: isize, col: &[u8; 4])
+    {
+        if x >= self.width() as isize
+        || y >= self.height() as isize
+        || x < 0
+        || y < 0
+        {
+            return;
+        }
+        let i = (y as usize * self.width() + x as usize) * 4;
+
+        self
+            .pixels_mut()[i..i + 4]
+            .copy_from_slice(col);
+    }
+
+    /// draws a line on top of this bitmap. the line is clipped
+    /// if some(or all) of its pixels are out of bounds
+    pub fn draw_line(&mut self, ax: isize, ay: isize, bx: isize, by: isize, col: &[u8; 4])
+    {
+        
+    }
 }
 
 /// blanket implementation
