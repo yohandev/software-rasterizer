@@ -17,6 +17,7 @@ impl App for MyApp
         });
 
         frame.draw_bitmap(&self.rect, self.x, self.y as isize);
+        frame.draw_line(20, 10, self.x, self.y as isize, &[0x0f, 0xf0, 0xff, 0xff]);
     }
 
     fn update(&mut self, time: &Time)

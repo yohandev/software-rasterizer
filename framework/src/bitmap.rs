@@ -192,7 +192,7 @@ impl<T: Buf> Bitmap<T>
 
     /// draw a single pixel to this bitmap. nothing is drawn
     /// if the pixel is out of bounds
-    pub fn draw(&mut self, x: isize, y: isize, col: &[u8; 4])
+    pub fn draw_pixel(&mut self, x: isize, y: isize, col: &[u8; 4])
     {
         if x >= self.width() as isize
         || y >= self.height() as isize
@@ -212,7 +212,15 @@ impl<T: Buf> Bitmap<T>
     /// if some(or all) of its pixels are out of bounds
     pub fn draw_line(&mut self, ax: isize, ay: isize, bx: isize, by: isize, col: &[u8; 4])
     {
+        for i in 0..100
+        {
+            let t = i as f32 / 100.0;
 
+            let x = ax as f32 + (bx - ax) as f32 * t; 
+            let y = ay as f32 + (by - ay) as f32 * t; 
+
+            self.draw_pixel(x as isize, y as isize, col); 
+        } 
     }
 }
 
