@@ -17,8 +17,8 @@ impl App for MyApp
             px.copy_from_slice(&[0xff, 0x00, 0xff, 0xff]);
         });
 
-        frame.draw_bitmap(&self.rect, Vec2::new(self.x, self.y as isize));
-        frame.draw_line(Vec2::new(200, 10), Vec2::new(self.x, self.y as isize), &[0x0f, 0xf0, 0xff, 0xff]);
+        frame.draw_bitmap(&self.rect, (self.x, self.y as isize));
+        frame.draw_line((200, 10), (self.x, self.y as isize), &[0x0f, 0xf0, 0xff, 0xff]);
     }
 
     fn update(&mut self, time: &Time)

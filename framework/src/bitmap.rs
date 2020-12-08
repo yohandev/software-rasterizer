@@ -19,8 +19,11 @@ pub trait Buf: AsRef<[u8]> + AsMut<[u8]> { }
 impl<T: Buf> Bitmap<T>
 {
     /// create a new bitmap from its raw parts
-    pub fn new(inner: T, size: Extent2<usize>) -> Self
+    pub fn new(inner: T, size: impl Into<Extent2<usize>>) -> Self
     {
+        // convert
+        let size = size.into();
+
         debug_assert_eq!(inner.as_ref().len() % 4, 0);
         debug_assert_eq!(inner.as_ref().len() / 4, size.w * size.h);
 
@@ -164,8 +167,11 @@ impl<T: Buf> Bitmap<T>
     /// pixels and (optionally) translating it
     ///
     /// the source bitmap isn't affected
-    pub fn draw_bitmap(&mut self, src: &Bitmap<impl Buf>, pos: Vec2<isize>)
+    pub fn draw_bitmap(&mut self, src: &Bitmap<impl Buf>, pos: impl Into<Vec2<isize>>)
     {
+        // convert
+        let pos = pos.into();
+
         // givens
         let dst_size: Vec2<isize> = self.size().as_::<isize>().into();
         let src_size: Vec2<isize> = src.size().as_::<isize>().into();
@@ -197,8 +203,11 @@ impl<T: Buf> Bitmap<T>
 
     /// draw a single pixel to this bitmap. nothing is drawn
     /// if the pixel is out of bounds
-    pub fn draw_pixel(&mut self, pos: Vec2<isize>, col: &[u8; 4])
+    pub fn draw_pixel(&mut self, pos: impl Into<Vec2<isize>>, col: &[u8; 4])
     {
+        // convert
+        let pos = pos.into();
+
         if pos.x >= self.width() as isize
         || pos.y >= self.height() as isize
         || pos.x < 0
@@ -215,8 +224,12 @@ impl<T: Buf> Bitmap<T>
 
     /// draws a line on top of this bitmap. the line is clipped
     /// if some(or all) of its pixels are out of bounds
-    pub fn draw_line(&mut self, mut a: Vec2<isize>, mut b: Vec2<isize>, col: &[u8; 4])
+    pub fn draw_line(&mut self, a: impl Into<Vec2<isize>>, b: impl Into<Vec2<isize>>, col: &[u8; 4])
     {
+        // convert
+        let mut a = a.into();
+        let mut b = b.into();
+
         // if steep, reverse the coords
         let steep = if (a.x - b.x).abs() < (a.y - b.y).abs()
         {
@@ -244,7 +257,7 @@ impl<T: Buf> Bitmap<T>
         for x in a.x..=b.x
         {
             // set the color
-            self.draw_pixel(if steep { Vec2::new(y, x) } else { Vec2::new(x, y) }, col); 
+            self.draw_pixel(if steep { (y, x) } else { (x, y) }, col); 
             
             // increment slope error
             e += de; 
