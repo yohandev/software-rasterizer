@@ -9,6 +9,7 @@ pub use time::Time;
 pub use app::App;
 
 pub use rayon::prelude::ParallelIterator;
+pub use vek as math;
 
 /// run the app, hyjacking the main thread until the
 /// window is closed
