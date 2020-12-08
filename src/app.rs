@@ -1,9 +1,8 @@
 use framework::*;
 
-#[derive(Debug, Default)]
 pub struct MyApp
 {
-    rect: DummyBitmap,
+    rect: Bitmap<Vec<u8>>,
     x: isize,
     y: f32,
 }
@@ -12,7 +11,7 @@ impl App for MyApp
 {
     fn render(&self, frame: &mut Frame)
     {
-        frame.par_iter_pixels_mut().for_each(|(_, _, px)|
+        Bitmap::par_iter_pixels_mut(frame).for_each(|(_, _, px)|
         {
             px.copy_from_slice(&[0xff, 0x00, 0xff, 0xff]);
         });
@@ -29,42 +28,20 @@ impl App for MyApp
     }
 }
 
-#[derive(Debug)]
-struct DummyBitmap(Vec<u8>);
-
-impl DummyBitmap
-{
-    const WIDTH: usize = 300;
-    const HEIGHT: usize = 120;
-}
-
-impl Default for DummyBitmap
+impl Default for MyApp
 {
     fn default() -> Self
     {
-        Self(std::iter::repeat(0xff).take(Self::WIDTH * Self::HEIGHT * 4).collect())
-    }
-}
+        const WIDTH: usize = 300;
+        const HEIGHT: usize = 120;
 
-impl Bitmap for DummyBitmap
-{
-    fn width(&self) -> usize
-    {
-        Self::WIDTH
-    }
+        let rect = std::iter::repeat(0xff).take(WIDTH * HEIGHT * 4).collect();
 
-    fn height(&self) -> usize
-    {
-        Self::HEIGHT
-    }
-
-    fn pixels(&self) -> &[u8]
-    {
-        &self.0
-    }
-
-    fn pixels_mut(&mut self) -> &mut [u8]
-    {
-        &mut self.0
+        Self
+        {
+            rect: Bitmap::new(rect, WIDTH, HEIGHT),
+            x: 0,
+            y: 0.0,
+        }
     }
 }
