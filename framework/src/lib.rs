@@ -36,7 +36,7 @@ pub fn run_instance<T: App>(mut state: T)
     use winit::window::WindowBuilder;
     use winit_input_helper::WinitInputHelper;
 
-    let size = LogicalSize::new(T::WIDTH as f64, T::HEIGHT as f64);
+    let size = LogicalSize::new(T::SIZE.w as f64, T::SIZE.h as f64);
 
     let events = EventLoop::new();
     let window = WindowBuilder::new()
@@ -51,7 +51,7 @@ pub fn run_instance<T: App>(mut state: T)
         let w_size = window.inner_size();
         let surf_tex = SurfaceTexture::new(w_size.width, w_size.height, &window);
         
-        Pixels::new(T::WIDTH as u32, T::HEIGHT as u32, surf_tex).unwrap()
+        Pixels::new(T::SIZE.w as u32, T::SIZE.h as u32, surf_tex).unwrap()
     };
 
     let mut input = WinitInputHelper::new();
@@ -63,7 +63,7 @@ pub fn run_instance<T: App>(mut state: T)
         if let Event::RedrawRequested(_) = evt
         {
             // get the frame
-            let mut frame = Frame::new(pixels.get_frame(), T::WIDTH, T::HEIGHT);
+            let mut frame = Frame::new(pixels.get_frame(), T::SIZE);
             
             // update buffer
             state.render(&mut frame);

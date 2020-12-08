@@ -1,4 +1,4 @@
-use crate::{ Frame, Time };
+use crate::{ Frame, Time, math::Extent2 };
 
 /// represents an application that can be run by the framework
 pub trait App: 'static
@@ -7,10 +7,9 @@ pub trait App: 'static
     /// title
     const TITLE: &'static str = "Playground";
 
-    /// the default width(in pixels) for the window and framebuffer
-    const WIDTH: usize = 600;
-    /// the default height(in pixels) for the window and framebuffer
-    const HEIGHT: usize = 400;
+    /// the default width and height(in pixels) for the window and
+    /// framebuffer
+    const SIZE: Extent2<usize> = Extent2::new(600, 400);
 
     /// render to the window
     fn render(&self, frame: &mut Frame);

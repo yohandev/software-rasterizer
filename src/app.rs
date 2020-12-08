@@ -1,3 +1,4 @@
+use framework::math::*;
 use framework::*;
 
 pub struct MyApp
@@ -11,13 +12,13 @@ impl App for MyApp
 {
     fn render(&self, frame: &mut Frame)
     {
-        frame.par_iter_pixels_mut().for_each(|(_, _, px)|
+        frame.par_iter_pixels_mut().for_each(|(_, px)|
         {
             px.copy_from_slice(&[0xff, 0x00, 0xff, 0xff]);
         });
 
-        frame.draw_bitmap(&self.rect, self.x, self.y as isize);
-        frame.draw_line(200, 10, self.x, self.y as isize, &[0x0f, 0xf0, 0xff, 0xff]);
+        frame.draw_bitmap(&self.rect, Vec2::new(self.x, self.y as isize));
+        frame.draw_line(Vec2::new(200, 10), Vec2::new(self.x, self.y as isize), &[0x0f, 0xf0, 0xff, 0xff]);
     }
 
     fn update(&mut self, time: &Time)
@@ -33,14 +34,13 @@ impl Default for MyApp
 {
     fn default() -> Self
     {
-        const WIDTH: usize = 300;
-        const HEIGHT: usize = 120;
+        const RECT_SIZE: Extent2<usize> = Extent2::new(300, 120);
 
-        let rect = std::iter::repeat(0xff).take(WIDTH * HEIGHT * 4).collect();
+        let rect = std::iter::repeat(0xff).take(RECT_SIZE.w * RECT_SIZE.h * 4).collect();
 
         Self
         {
-            rect: Bitmap::new(rect, WIDTH, HEIGHT),
+            rect: Bitmap::new(rect, RECT_SIZE),
             x: 0,
             y: 0.0,
         }
