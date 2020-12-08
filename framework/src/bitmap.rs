@@ -154,7 +154,7 @@ impl<T: Buf> Bitmap<T>
     /// pixels and (optionally) translating it
     ///
     /// the source bitmap isn't affected
-    pub fn paste(&mut self, src: &Bitmap<impl Buf>, dx: isize, dy: isize)
+    pub fn draw_bitmap(&mut self, src: &Bitmap<impl Buf>, dx: isize, dy: isize)
     {
         // givens
         let dst_width = self.width() as isize;
@@ -212,7 +212,7 @@ impl<T: Buf> Bitmap<T>
     /// if some(or all) of its pixels are out of bounds
     pub fn draw_line(&mut self, ax: isize, ay: isize, bx: isize, by: isize, col: &[u8; 4])
     {
-        
+
     }
 }
 

@@ -16,7 +16,7 @@ impl App for MyApp
             px.copy_from_slice(&[0xff, 0x00, 0xff, 0xff]);
         });
 
-        frame.paste(&self.rect, self.x, self.y as isize);
+        frame.draw_bitmap(&self.rect, self.x, self.y as isize);
     }
 
     fn update(&mut self, time: &Time)
