@@ -210,17 +210,44 @@ impl<T: Buf> Bitmap<T>
 
     /// draws a line on top of this bitmap. the line is clipped
     /// if some(or all) of its pixels are out of bounds
-    pub fn draw_line(&mut self, ax: isize, ay: isize, bx: isize, by: isize, col: &[u8; 4])
+    pub fn draw_line(&mut self, mut ax: isize, mut ay: isize, mut bx: isize, mut by: isize, col: &[u8; 4])
     {
-        for i in 0..100
+        // if steep, reverse the coords
+        let steep = if (ax - bx).abs() < (ay - by).abs()
         {
-            let t = i as f32 / 100.0;
+            std::mem::swap(&mut ax, &mut ay);
+            std::mem::swap(&mut bx, &mut by);
 
-            let x = ax as f32 + (bx - ax) as f32 * t; 
-            let y = ay as f32 + (by - ay) as f32 * t; 
+            true
+        }
+        else { false };
 
-            self.draw_pixel(x as isize, y as isize, col); 
-        } 
+        // flip the x so that we always start with the lowest x
+        if ax > bx
+        {
+            std::mem::swap(&mut ax, &mut bx); 
+            std::mem::swap(&mut ay, &mut by); 
+        }
+
+        let dx = bx - ax;
+        let dy = by - ay;
+
+        let derror2 = dy.abs() * 2;
+
+        let mut error2 = 0;
+        let mut y = ay;
+        
+        for x in ax..=bx
+        {
+            if steep { self.draw_pixel(y, x, col); } else { self.draw_pixel(x, y, col); }
+            
+            error2 += derror2; 
+            if error2 > dx
+            {
+                y += if by > ay {1 } else { -1 };
+                error2 -= dx * 2;
+            }
+        }
     }
 }
 
