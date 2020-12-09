@@ -14,11 +14,14 @@ impl App for MyApp
     {
         frame.par_iter_pixels_mut().for_each(|(_, px)|
         {
-            px.copy_from_slice(&[0xff, 0x00, 0xff, 0xff]);
+            px.r = 0xff;
+            px.g = 0x0f;
+            px.b = 0xff;
+            px.a = 0xff;
         });
 
         frame.draw_bitmap(&self.rect, (self.x, self.y as isize));
-        frame.draw_line((200, 10), (self.x, self.y as isize), &[0x0f, 0xf0, 0xff, 0xff]);
+        frame.draw_line((200, 10), (self.x, self.y as isize), [0x0f, 0xf0, 0xff, 0xff]);
     }
 
     fn update(&mut self, time: &Time)

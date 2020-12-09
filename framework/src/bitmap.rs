@@ -240,7 +240,7 @@ impl<T: Buf> Bitmap<T>
 
     /// draw a single pixel to this bitmap. nothing is drawn
     /// if the pixel is out of bounds
-    pub fn draw_pixel(&mut self, pos: impl Into<Vec2<isize>>, col: &[u8; 4])
+    pub fn draw_pixel(&mut self, pos: impl Into<Vec2<isize>>, col: impl Into<Rgba<u8>>)
     {
         // convert
         let pos = pos.into();
@@ -256,16 +256,17 @@ impl<T: Buf> Bitmap<T>
 
         self
             .raw_pixels_mut()[i..i + 4]
-            .copy_from_slice(col);
+            .copy_from_slice(&col.into());
     }
 
     /// draws a line on top of this bitmap. the line is clipped
     /// if some(or all) of its pixels are out of bounds
-    pub fn draw_line(&mut self, a: impl Into<Vec2<isize>>, b: impl Into<Vec2<isize>>, col: &[u8; 4])
+    pub fn draw_line(&mut self, a: impl Into<Vec2<isize>>, b: impl Into<Vec2<isize>>, col: impl Into<Rgba<u8>>)
     {
         // convert
         let mut a = a.into();
         let mut b = b.into();
+        let col = col.into();
 
         // if steep, reverse the coords
         let steep = if (a.x - b.x).abs() < (a.y - b.y).abs()
