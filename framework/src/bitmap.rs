@@ -51,18 +51,55 @@ impl<T: Buf> Bitmap<T>
         self.size.h
     }
 
-    /// get the raw pixel bytes in this bitmap
+    /// get this bitmap's area(width * height), in pixels
     #[inline]
-    pub fn pixels(&self) -> &[u8]
+    pub fn area(&self) -> usize
+    {
+        self.width() * self.height()
+    }
+
+    /// get the raw pixel bytes in this bitmap
+    ///
+    /// returns a slice of size width * height * 4
+    #[inline]
+    pub fn raw_pixels(&self) -> &[u8]
     {
         self.inner.as_ref()
     }
 
     /// get the raw pixel bytes in this bitmap, mutably
+    ///
+    /// returns a slice of size width * height * 4
     #[inline]
-    pub fn pixels_mut(&mut self) -> &mut [u8]
+    pub fn raw_pixels_mut(&mut self) -> &mut [u8]
     {
         self.inner.as_mut()
+    }
+
+    /// get the pixels in this bitmap
+    ///
+    /// returns a slice of size width * height
+    #[inline]
+    pub fn pixels(&self) -> &[Rgba<u8>]
+    {
+        use std::slice::from_raw_parts as slice;
+        unsafe
+        {
+            slice(self.raw_pixels().as_ptr() as *const Rgba<u8>, self.area())
+        }
+    }
+
+    /// get the pixels in this bitmap, mutably
+    ///
+    /// returns a slice of size width * height
+    #[inline]
+    pub fn pixels_mut(&mut self) -> &mut [Rgba<u8>]
+    {
+        use std::slice::from_raw_parts_mut as slice;
+        unsafe
+        {
+            slice(self.raw_pixels_mut().as_ptr() as *mut Rgba<u8>, self.area())
+        }
     }
 
     /// returns an iterator over the pixels in this bitmap
@@ -76,13 +113,13 @@ impl<T: Buf> Bitmap<T>
     ///     }
     /// }
     ///```
-    pub fn iter_pixels(&self) -> impl Iterator<Item = (Vec2<usize>, &[u8])> + '_
+    pub fn iter_pixels(&self) -> impl Iterator<Item = (Vec2<usize>, &Rgba<u8>)> + '_
     {
         let w = self.width();
         let h = self.height();
 
         self.pixels()
-            .chunks_exact(4)
+            .iter()
             .enumerate()
             .map(move |(i, px)| (Vec2::new(i % w, i / h), px))
     }
@@ -103,13 +140,13 @@ impl<T: Buf> Bitmap<T>
     ///     }
     /// }
     ///```
-    pub fn iter_pixels_mut(&mut self) -> impl Iterator<Item = (Vec2<usize>, &mut [u8])> + '_
+    pub fn iter_pixels_mut(&mut self) -> impl Iterator<Item = (Vec2<usize>, &mut Rgba<u8>)> + '_
     {
         let w = self.width();
         let h = self.height();
 
         self.pixels_mut()
-            .chunks_exact_mut(4)
+            .iter_mut()
             .enumerate()
             .map(move |(i, px)| (Vec2::new(i % w, i / h), px))
     }
@@ -125,13 +162,13 @@ impl<T: Buf> Bitmap<T>
     ///     }
     /// });
     ///```
-    pub fn par_iter_pixels(&self) -> impl ParallelIterator<Item = (Vec2<usize>, &[u8])> + '_
+    pub fn par_iter_pixels(&self) -> impl ParallelIterator<Item = (Vec2<usize>, &Rgba<u8>)> + '_
     {
         let w = self.width();
         let h = self.height();
 
         self.pixels()
-            .par_chunks_exact(4)
+            .par_iter()
             .enumerate()
             .map(move |(i, px)| (Vec2::new(i % w, i / h), px))
     }
@@ -152,13 +189,13 @@ impl<T: Buf> Bitmap<T>
     ///     }
     /// });
     ///```
-    pub fn par_iter_pixels_mut(&mut self) -> impl ParallelIterator<Item = (Vec2<usize>, &mut [u8])> + '_
+    pub fn par_iter_pixels_mut(&mut self) -> impl ParallelIterator<Item = (Vec2<usize>, &mut Rgba<u8>)> + '_
     {
         let w = self.width();
         let h = self.height();
 
         self.pixels_mut()
-            .par_chunks_exact_mut(4)
+            .par_iter_mut()
             .enumerate()
             .map(move |(i, px)| (Vec2::new(i % w, i / h), px))
     }
@@ -176,8 +213,8 @@ impl<T: Buf> Bitmap<T>
         let dst_size: Vec2<isize> = self.size().as_::<isize>().into();
         let src_size: Vec2<isize> = src.size().as_::<isize>().into();
 
-        let src_buf = src.pixels();
-        let dst_buf = self.pixels_mut();
+        let src_buf = src.raw_pixels();
+        let dst_buf = self.raw_pixels_mut();
 
         // as you iterate src's pixels; [0, src_width] and [0, src_height]
         let src_min = pos.map2(src_size, |p, s| (if p < 0 { -p } else { 0 }).min(s));
@@ -218,7 +255,7 @@ impl<T: Buf> Bitmap<T>
         let i = (pos.y as usize * self.width() + pos.x as usize) * 4;
 
         self
-            .pixels_mut()[i..i + 4]
+            .raw_pixels_mut()[i..i + 4]
             .copy_from_slice(col);
     }
 
