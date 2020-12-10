@@ -26,7 +26,7 @@ impl App for MyApp
 
     fn update(&mut self, time: &Time)
     {
-        self.x = (f32::sin(time.elapsed().as_secs_f32()) * 400.0 + 200.0) as isize;
+        self.x = (f32::sin(time.elapsed().as_secs_f32()) * 400.0 + 210.0) as isize;
         self.y += time.dt() * 10.0;
 
         println!("FPS: {:.1}", 1.0 / time.dt());

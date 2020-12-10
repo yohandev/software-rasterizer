@@ -200,6 +200,20 @@ impl<T: Buf> Bitmap<T>
             .map(move |(i, px)| (Vec2::new(i % w, i / h), px))
     }
 
+    /// draw a single pixel to this bitmap. panics if out of bounds
+    #[inline]
+    pub fn draw_pixel(&mut self, pos: impl Into<Vec2<isize>>, col: impl Into<Rgba<u8>>)
+    {
+        // convert
+        let pos = pos.into();
+        // index
+        let ind = (pos.y as usize * self.width() + pos.x as usize) * 4;
+
+        self
+            .raw_pixels_mut()[ind..ind + 4]
+            .copy_from_slice(&col.into());
+    }
+
     /// paste another bitmap on top of this one, clipping any invisible
     /// pixels and (optionally) translating it
     ///
@@ -207,7 +221,7 @@ impl<T: Buf> Bitmap<T>
     pub fn draw_bitmap(&mut self, src: &Bitmap<impl Buf>, pos: impl Into<Vec2<isize>>)
     {
         // convert
-        let pos = pos.into();
+        let pos: Vec2<isize> = pos.into();
 
         // givens
         let dst_size: Vec2<isize> = self.size().as_::<isize>().into();
@@ -224,6 +238,12 @@ impl<T: Buf> Bitmap<T>
         let dst_min_x = if pos.x < 0 { 0 } else { pos.x };
         let dst_max_x = dst_min_x + (src_max.x - src_min.x);
 
+        // nothing to copy
+        if dst_max_x < dst_min_x
+        {
+            return;
+        }
+
         // iterate vertically
         for y in src_min.y..src_max.y
         {
@@ -238,37 +258,17 @@ impl<T: Buf> Bitmap<T>
         }
     }
 
-    /// draw a single pixel to this bitmap. nothing is drawn
-    /// if the pixel is out of bounds
-    pub fn draw_pixel(&mut self, pos: impl Into<Vec2<isize>>, col: impl Into<Rgba<u8>>)
-    {
-        // convert
-        let pos = pos.into();
-
-        if pos.x >= self.width() as isize
-        || pos.y >= self.height() as isize
-        || pos.x < 0
-        || pos.y < 0
-        {
-            return;
-        }
-        let i = (pos.y as usize * self.width() + pos.x as usize) * 4;
-
-        self
-            .raw_pixels_mut()[i..i + 4]
-            .copy_from_slice(&col.into());
-    }
-
     /// draws a line on top of this bitmap. the line is clipped
     /// if some(or all) of its pixels are out of bounds
+    ///
+    /// algorithm from http://stackoverflow.com/a/40902741/432509
     pub fn draw_line(&mut self, a: impl Into<Vec2<isize>>, b: impl Into<Vec2<isize>>, col: impl Into<Rgba<u8>>)
     {
         // convert
-        let mut a = a.into();
-        let mut b = b.into();
+        let mut a: Vec2<isize> = a.into();
+        let mut b: Vec2<isize> = b.into();
         let col = col.into();
 
-        // if steep, reverse the coords
         let steep = if (a.x - b.x).abs() < (a.y - b.y).abs()
         {
             std::mem::swap(&mut a.x, &mut a.y);
@@ -285,24 +285,134 @@ impl<T: Buf> Bitmap<T>
             std::mem::swap(&mut a.y, &mut b.y); 
         }
 
-        let d = b - a;          // delta
-        let de = d.y.abs() * 2; // slope error increment(0.5)
-
-        let mut e = 0;          // slope error(0.5)
-        let mut y = a.y;        // starting y
+        let original_a = a.clone();
+        let original_b = b.clone();
         
-        // begin drawing
-        for x in a.x..=b.x
+        // defining region codes 
+        const INSIDE: u8 = 0;   // 0000
+        const LEFT: u8 = 1;     // 0001
+        const RIGHT: u8 = 2;    // 0010
+        const BOTTOM: u8 = 4;   // 0100
+        const TOP: u8 = 8;      // 1000
+
+        // bounds
+        let max: Vec2<isize> = self.size().as_::<isize>().into();
+        let min: Vec2<isize> = Vec2::zero();
+
+        // function to compute region code for a point(x, y) 
+        fn compute_code(pos: Vec2<isize>, min: Vec2<isize>, max: Vec2<isize>) -> u8
         {
-            // set the color
-            self.draw_pixel(if steep { (y, x) } else { (x, y) }, col); 
+            // initialized as being inside 
+            let mut code = INSIDE;
+
+            if pos.x < min.x { code |= LEFT; }      // to the left of rectangle    
+            else if pos.x >= max.x { code |= RIGHT; }    // to the right of rectangle 
             
-            // increment slope error
-            e += de; 
-            if e > d.x
+            if pos.y < min.y { code |= BOTTOM; }        // below the rectangle 
+            else if pos.y >= max.y { code |= TOP; }      // above the rectangle
+
+            code
+        }
+        
+        // Compute region codes for P1, P2 
+        let mut a_code = compute_code(a, min, max);
+        let mut b_code = compute_code(a, min, max);
+    
+        let accept = loop
+        { 
+            if a_code == INSIDE && b_code == INSIDE
             {
-                y += if b.y > a.y { 1 } else { -1 };
-                e -= d.x * 2;
+                // If both endpoints lie within rectangle 
+                break true; 
+            } 
+            else if a_code & b_code != INSIDE
+            {
+                // If both endpoints are outside rectangle, in same region 
+                break false; 
+            } 
+            else
+            {
+                // At least one endpoint is outside the rectangle, pick it. 
+                let code_out = if a_code != INSIDE { a_code } else { b_code };
+    
+                // Find intersection point; using formulas:
+                // y = y1 + slope * (x - x1)
+                // x = x1 + (1 / slope) * (y - y1)
+                let x;
+                let y;
+                if code_out & TOP == TOP
+                {
+                    // point is above the clip rectangle 
+                    x = a.x + (b.x - a.x) * (max.y - a.y) / (b.y - a.y);
+                    y = max.y;
+                } 
+                else if code_out & BOTTOM == BOTTOM
+                {
+                    // point is below the rectangle 
+                    x = a.x + (b.x - a.x) * (min.y - a.y) / (b.y - a.y); 
+                    y = min.y;
+                } 
+                else if code_out & RIGHT == RIGHT
+                {
+                    // point is to the right of rectangle
+                    y = a.y + (b.y - a.y) * (max.x - a.x) / (b.x - a.x);
+                    x = max.x;
+                }
+                else if code_out & LEFT == LEFT
+                {
+                    // point is to the left of rectangle
+                    y = a.y + (b.y - a.y) * (min.x - a.x) / (b.x - a.x);
+                    x = min.x;
+                } 
+                else
+                {
+                    unreachable!();
+                }
+    
+                // Now intersection point x, y is found. We replace point outside
+                //  rectangle by intersection point 
+                if code_out == a_code
+                {
+                    a.x = x;
+                    a.y = y;
+
+                    a_code = compute_code(a, min, max);
+                }
+                else
+                {
+                    b.x = x;
+                    b.y = y;
+
+                    b_code = compute_code(b, min, max); 
+                } 
+            } 
+        };
+        if accept
+        {
+            if original_a == a || original_b != b
+            {
+                println!("Accepted line({} to {}) from {} to {}", original_a, original_b, a, b);
+            }
+
+            let d = b - a;          // delta
+            let de = d.y.abs() * 2; // slope error increment(0.5)
+
+            let mut e = 0;          // slope error(0.5)
+            let mut y = a.y;        // starting y
+            
+            // begin drawing
+            for x in a.x..=b.x
+            {
+                // set the color
+                self.draw_pixel(if steep { (y, x) } else { (x, y) }, col); 
+                
+                // increment slope error
+                e += de; 
+                if e > d.x
+                {
+                    y += if b.y > a.y { 1 } else { -1 };
+                    e -= d.x * 2;
+                }
             }
         }
     }
