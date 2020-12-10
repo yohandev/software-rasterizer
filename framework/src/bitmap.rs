@@ -270,38 +270,38 @@ impl<T: Buf> Bitmap<T>
         let col = col.into();
 
         // bounds
-        let mut max: Vec2<isize> = self.size().map(|n| n as isize - 1).into();
+        let mut max: Vec2<isize> = self.size().as_::<isize>().into();
         let mut min: Vec2<isize> = Vec2::zero();
 
         // Vertical line
         if a.x == b.x
         {
-            if a.x < min.x || a.x > max.x
+            if a.x < min.x || a.x >= max.x
             {
                 return;
             }
             if a.y <= b.y
             {
-                if b.y < min.y || a.y > max.y
+                if b.y < min.y || a.y >= max.y
                 {
                     return;
                 }
                 a.y = a.y.max(min.y);
                 b.y = b.y.min(max.y);
-                for y in a.y..(b.y + 1)
+                for y in a.y..b.y
                 {
                     self.draw_pixel((a.x, y), col);
                 }
             }
             else
             {
-                if a.y < min.y || b.y > max.y
+                if a.y < min.y || b.y >= max.y
                 {
                     return;
                 }
                 a.y = a.y.min(max.y);
                 b.y = b.y.max(min.y);
-                for y in (b.y..(a.y + 1)).rev()
+                for y in (b.y..a.y).rev()
                 {
                     self.draw_pixel((a.x, y), col);
                 }
@@ -312,33 +312,33 @@ impl<T: Buf> Bitmap<T>
         // Horizontal line
         if a.y == b.y
         {
-            if a.y < min.y || a.y > max.y
+            if a.y < min.y || a.y >= max.y
             {
                 return;
             }
 
             if a.x <= b.x
             {
-                if b.x < min.x || a.x > max.x
+                if b.x < min.x || a.x >= max.x
                 {
                     return;
                 }
                 a.x = a.x.max(min.x);
                 b.x = b.x.min(max.x);
-                for x in a.x..(b.x + 1)
+                for x in a.x..b.x
                 {
                     self.draw_pixel((x, a.y), col);
                 }
             }
             else
             {
-                if a.x < min.x || b.x > max.x
+                if a.x < min.x || b.x >= max.x
                 {
                     return;
                 }
                 a.x = a.x.min(max.x);
                 b.x = b.x.max(min.x);
-                for x in b.x..(a.x + 1)
+                for x in b.x..a.x
                 {
                     self.draw_pixel((x, a.y), col);
                 }
@@ -352,7 +352,7 @@ impl<T: Buf> Bitmap<T>
 
         if a.x < b.x
         {
-            if a.x > max.x || b.x < min.x
+            if a.x >= max.x || b.x < min.x
             {
                 return;
             }
@@ -360,7 +360,7 @@ impl<T: Buf> Bitmap<T>
         }
         else
         {
-            if b.x > max.x || a.x < min.x
+            if b.x >= max.x || a.x < min.x
             {
                 return;
             }
@@ -378,7 +378,7 @@ impl<T: Buf> Bitmap<T>
 
         if a.y < b.y
         {
-            if a.y > max.y || b.y < min.y
+            if a.y >= max.y || b.y < min.y
             {
                 return;
             }
@@ -386,7 +386,7 @@ impl<T: Buf> Bitmap<T>
         }
         else
         {
-            if b.y > max.y || a.y < min.y
+            if b.y >= max.y || a.y < min.y
             {
                 return;
             }
@@ -425,7 +425,7 @@ impl<T: Buf> Bitmap<T>
                 x_pos += msd;
 
                 // Line misses the clip window entirely.
-                if x_pos > max.x
+                if x_pos >= max.x
                 {
                     return;
                 }
@@ -472,7 +472,7 @@ impl<T: Buf> Bitmap<T>
             }
 
             let mut x_pos_end = b.x;
-            if b.y > max.y
+            if b.y >= max.y
             {
                 let temp = delta_x_step * (max.y - a.y) + delta_x;
                 let msd = temp / delta_y_step;
@@ -484,7 +484,7 @@ impl<T: Buf> Bitmap<T>
                 }
             }
 
-            x_pos_end = x_pos_end.min(max.x) + 1;
+            x_pos_end = x_pos_end.min(max.x);
 
             if sign_y == -1
             {
@@ -532,7 +532,7 @@ impl<T: Buf> Bitmap<T>
                 y_pos += msd;
 
                 // Line misses the clip window entirely.
-                if y_pos > max.y
+                if y_pos >= max.y
                 {
                     return;
                 }
@@ -579,7 +579,7 @@ impl<T: Buf> Bitmap<T>
             }
 
             let mut y_pos_end = b.y;
-            if b.x > max.x
+            if b.x >= max.x
             {
                 let temp = delta_y_step * (max.x - a.x) + delta_y;
                 let msd = temp / delta_x_step;
@@ -591,7 +591,7 @@ impl<T: Buf> Bitmap<T>
                 }
             }
 
-            y_pos_end = y_pos_end.min(max.y) + 1;
+            y_pos_end = y_pos_end.min(max.y);
             if sign_x == -1
             {
                 x_pos = -x_pos;
