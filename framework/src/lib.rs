@@ -1,6 +1,7 @@
 mod bitmap;
 mod frame;
 mod time;
+mod util;
 mod app;
 
 pub use bitmap::Bitmap;
