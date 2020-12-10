@@ -1,34 +1,45 @@
 use framework::math::*;
 use framework::*;
 
+use crate::obj::Obj;
+
 pub struct MyApp
 {
-    rect: Bitmap<Vec<u8>>,
-    x: isize,
-    y: f32,
+    obj: Obj
 }
 
 impl App for MyApp
 {
     fn render(&self, frame: &mut Frame)
     {
+        // reset frame
         frame.par_iter_pixels_mut().for_each(|(_, px)|
         {
-            px.r = 0xff;
-            px.g = 0x0f;
-            px.b = 0xff;
+            px.r = 0x00;
+            px.g = 0x00;
+            px.b = 0x00;
             px.a = 0xff;
         });
 
-        frame.draw_bitmap(&self.rect, (self.x, self.y as isize));
-        frame.draw_line((200, -10), (self.x, self.y as isize), [0x0f, 0xf0, 0xff, 0xff]);
+        // frame size as a float vector
+        let size: Vec2<f32> = Self::SIZE.as_().into();
+
+        for [mut v0, mut v1, mut v2] in self.obj.iter_faces()
+        {
+            // reframe
+            v0 = v0 * 150.0 + size / 2.0;
+            v1 = v1 * 150.0 + size / 2.0;
+            v2 = v2 * 150.0 + size / 2.0;
+
+            // draw wireframe
+            frame.draw_line(v0.xy().as_(), v1.xy().as_(), [0xff, 0xff, 0xff, 0xff]);
+            frame.draw_line(v0.xy().as_(), v2.xy().as_(), [0xff, 0xff, 0xff, 0xff]);
+            frame.draw_line(v1.xy().as_(), v2.xy().as_(), [0xff, 0xff, 0xff, 0xff]);
+        }
     }
 
     fn update(&mut self, time: &Time)
     {
-        self.x = (f32::sin(time.elapsed().as_secs_f32()) * 400.0 + 210.0) as isize;
-        self.y += time.dt() * 50.0;
-
         println!("FPS: {:.1}", 1.0 / time.dt());
     }
 }
@@ -37,15 +48,9 @@ impl Default for MyApp
 {
     fn default() -> Self
     {
-        const RECT_SIZE: Extent2<usize> = Extent2::new(300, 120);
-
-        let rect = std::iter::repeat(0xff).take(RECT_SIZE.w * RECT_SIZE.h * 4).collect();
-
         Self
         {
-            rect: Bitmap::new(rect, RECT_SIZE),
-            x: 0,
-            y: 0.0,
+            obj: Obj::load("res/cone.obj")
         }
     }
 }
