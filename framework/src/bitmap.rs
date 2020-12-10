@@ -269,150 +269,356 @@ impl<T: Buf> Bitmap<T>
         let mut b: Vec2<isize> = b.into();
         let col = col.into();
 
-        let steep = if (a.x - b.x).abs() < (a.y - b.y).abs()
-        {
-            std::mem::swap(&mut a.x, &mut a.y);
-            std::mem::swap(&mut b.x, &mut b.y);
-
-            true
-        }
-        else { false };
-
-        // flip the x so that we always start with the lowest x
-        if a.x > b.x
-        {
-            std::mem::swap(&mut a.x, &mut b.x); 
-            std::mem::swap(&mut a.y, &mut b.y); 
-        }
-
-        let original_a = a.clone();
-        let original_b = b.clone();
-        
-        // defining region codes 
-        const INSIDE: u8 = 0;   // 0000
-        const LEFT: u8 = 1;     // 0001
-        const RIGHT: u8 = 2;    // 0010
-        const BOTTOM: u8 = 4;   // 0100
-        const TOP: u8 = 8;      // 1000
-
         // bounds
-        let max: Vec2<isize> = self.size().as_::<isize>().into();
-        let min: Vec2<isize> = Vec2::zero();
+        let mut max: Vec2<isize> = self.size().map(|n| n as isize - 1).into();
+        let mut min: Vec2<isize> = Vec2::zero();
 
-        // function to compute region code for a point(x, y) 
-        fn compute_code(pos: Vec2<isize>, min: Vec2<isize>, max: Vec2<isize>) -> u8
+        // Vertical line
+        if a.x == b.x
         {
-            // initialized as being inside 
-            let mut code = INSIDE;
-
-            if pos.x < min.x { code |= LEFT; }      // to the left of rectangle    
-            else if pos.x >= max.x { code |= RIGHT; }    // to the right of rectangle 
-            
-            if pos.y < min.y { code |= BOTTOM; }        // below the rectangle 
-            else if pos.y >= max.y { code |= TOP; }      // above the rectangle
-
-            code
-        }
-        
-        // Compute region codes for P1, P2 
-        let mut a_code = compute_code(a, min, max);
-        let mut b_code = compute_code(a, min, max);
-    
-        let accept = loop
-        { 
-            if a_code == INSIDE && b_code == INSIDE
+            if a.x < min.x || a.x > max.x
             {
-                // If both endpoints lie within rectangle 
-                break true; 
-            } 
-            else if a_code & b_code != INSIDE
+                return;
+            }
+            if a.y <= b.y
             {
-                // If both endpoints are outside rectangle, in same region 
-                break false; 
-            } 
+                if b.y < min.y || a.y > max.y
+                {
+                    return;
+                }
+                a.y = a.y.max(min.y);
+                b.y = b.y.min(max.y);
+                for y in a.y..(b.y + 1)
+                {
+                    self.draw_pixel((a.x, y), col);
+                }
+            }
             else
             {
-                // At least one endpoint is outside the rectangle, pick it. 
-                let code_out = if a_code != INSIDE { a_code } else { b_code };
-    
-                // Find intersection point; using formulas:
-                // y = y1 + slope * (x - x1)
-                // x = x1 + (1 / slope) * (y - y1)
-                let x;
-                let y;
-                if code_out & TOP == TOP
+                if a.y < min.y || b.y > max.y
                 {
-                    // point is above the clip rectangle 
-                    x = a.x + (b.x - a.x) * (max.y - a.y) / (b.y - a.y);
-                    y = max.y;
-                } 
-                else if code_out & BOTTOM == BOTTOM
-                {
-                    // point is below the rectangle 
-                    x = a.x + (b.x - a.x) * (min.y - a.y) / (b.y - a.y); 
-                    y = min.y;
-                } 
-                else if code_out & RIGHT == RIGHT
-                {
-                    // point is to the right of rectangle
-                    y = a.y + (b.y - a.y) * (max.x - a.x) / (b.x - a.x);
-                    x = max.x;
+                    return;
                 }
-                else if code_out & LEFT == LEFT
+                a.y = a.y.min(max.y);
+                b.y = b.y.max(min.y);
+                for y in (b.y..(a.y + 1)).rev()
                 {
-                    // point is to the left of rectangle
-                    y = a.y + (b.y - a.y) * (min.x - a.x) / (b.x - a.x);
-                    x = min.x;
-                } 
-                else
-                {
-                    unreachable!();
+                    self.draw_pixel((a.x, y), col);
                 }
-    
-                // Now intersection point x, y is found. We replace point outside
-                //  rectangle by intersection point 
-                if code_out == a_code
-                {
-                    a.x = x;
-                    a.y = y;
+            }
+            return;
+        }
 
-                    a_code = compute_code(a, min, max);
-                }
-                else
-                {
-                    b.x = x;
-                    b.y = y;
-
-                    b_code = compute_code(b, min, max); 
-                } 
-            } 
-        };
-        if accept
+        // Horizontal line
+        if a.y == b.y
         {
-            if original_a == a || original_b != b
+            if a.y < min.y || a.y > max.y
             {
-                println!("Accepted line({} to {}) from {} to {}", original_a, original_b, a, b);
+                return;
             }
 
-            let d = b - a;          // delta
-            let de = d.y.abs() * 2; // slope error increment(0.5)
-
-            let mut e = 0;          // slope error(0.5)
-            let mut y = a.y;        // starting y
-            
-            // begin drawing
-            for x in a.x..=b.x
+            if a.x <= b.x
             {
-                // set the color
-                self.draw_pixel(if steep { (y, x) } else { (x, y) }, col); 
-                
-                // increment slope error
-                e += de; 
-                if e > d.x
+                if b.x < min.x || a.x > max.x
                 {
-                    y += if b.y > a.y { 1 } else { -1 };
-                    e -= d.x * 2;
+                    return;
                 }
+                a.x = a.x.max(min.x);
+                b.x = b.x.min(max.x);
+                for x in a.x..(b.x + 1)
+                {
+                    self.draw_pixel((x, a.y), col);
+                }
+            }
+            else
+            {
+                if a.x < min.x || b.x > max.x
+                {
+                    return;
+                }
+                a.x = a.x.min(max.x);
+                b.x = b.x.max(min.x);
+                for x in b.x..(a.x + 1)
+                {
+                    self.draw_pixel((x, a.y), col);
+                }
+            }
+            return;
+        }
+
+        // Now simple cases are handled, perform clipping checks.
+        let sign_x;
+        let sign_y;
+
+        if a.x < b.x
+        {
+            if a.x > max.x || b.x < min.x
+            {
+                return;
+            }
+            sign_x = 1;
+        }
+        else
+        {
+            if b.x > max.x || a.x < min.x
+            {
+                return;
+            }
+            sign_x = -1;
+
+            // Invert sign, invert again right before plotting.
+            a.x = -a.x;
+            b.x = -b.x;
+
+            min.x = -min.x;
+            max.x = -max.x;
+
+            std::mem::swap(&mut min.x, &mut max.x);
+        }
+
+        if a.y < b.y
+        {
+            if a.y > max.y || b.y < min.y
+            {
+                return;
+            }
+            sign_y = 1;
+        }
+        else
+        {
+            if b.y > max.y || a.y < min.y
+            {
+                return;
+            }
+            sign_y = -1;
+
+            // Invert sign, invert again right before plotting.
+            a.y = -a.y;
+            b.y = -b.y;
+
+            min.y = -min.y;
+            max.y = -max.y;
+
+            std::mem::swap(&mut min.y, &mut max.y);
+        }
+
+        let delta_x = b.x - a.x;
+        let delta_y = b.y - a.y;
+
+        let mut delta_x_step = 2 * delta_x;
+        let mut delta_y_step = 2 * delta_y;
+
+        // Plotting values
+        let mut x_pos = a.x;
+        let mut y_pos = a.y;
+
+        if delta_x >= delta_y
+        {
+            let mut error = delta_y_step - delta_x;
+            let mut set_exit = false;
+
+            // Line starts below the clip window.
+            if a.y < min.y
+            {
+                let temp = (2 * (min.y - a.y) - 1) * delta_x;
+                let msd = temp / delta_y_step;
+                x_pos += msd;
+
+                // Line misses the clip window entirely.
+                if x_pos > max.x
+                {
+                    return;
+                }
+
+                // Line starts.
+                if x_pos >= min.x
+                {
+                    let rem = temp - msd * delta_y_step;
+
+                    y_pos = min.y;
+                    error -= rem + delta_x;
+
+                    if rem > 0
+                    {
+                        x_pos += 1;
+                        error += delta_y_step
+                    }
+                    set_exit = true;
+                }
+            }
+
+            // Line starts left of the clip window.
+            if !set_exit && a.x < min.x
+            {
+                let temp = delta_y_step * (min.x - a.x);
+                let msd = temp / delta_x_step;
+                y_pos += msd;
+                let rem = temp % delta_x_step;
+
+                // Line misses clip window entirely.
+                if y_pos > max.y || (y_pos == max.y && rem >= delta_x)
+                {
+                    return;
+                }
+
+                x_pos = min.x;
+                error += rem;
+
+                if rem >= delta_x
+                {
+                    y_pos += 1;
+                    error -= delta_x_step;
+                }
+            }
+
+            let mut x_pos_end = b.x;
+            if b.y > max.y
+            {
+                let temp = delta_x_step * (max.y - a.y) + delta_x;
+                let msd = temp / delta_y_step;
+                x_pos_end = a.x + msd;
+
+                if (temp - msd * delta_y_step) == 0
+                {
+                    x_pos_end -= 1;
+                }
+            }
+
+            x_pos_end = x_pos_end.min(max.x) + 1;
+
+            if sign_y == -1
+            {
+                y_pos = -y_pos
+            }
+
+            if sign_x == -1
+            {
+                x_pos = -x_pos;
+                x_pos_end = -x_pos_end;
+            }
+
+            delta_x_step -= delta_y_step;
+
+            while x_pos != x_pos_end
+            {
+                self.draw_pixel((x_pos, y_pos), col);
+
+                if error >= 0
+                {
+                    y_pos += sign_y;
+                    error -= delta_x_step;
+                }
+                else
+                {
+                    error += delta_y_step;
+                }
+
+                x_pos += sign_x;
+            }
+        }
+        else
+        {
+            // Line is steep '/' (delta_x < delta_y).
+            // Same as previous block of code with std::mem::swapped x/y axis.
+
+            let mut error = delta_x_step - delta_y;
+            let mut set_exit = false;
+
+            // Line starts left of the clip window.
+            if a.x < min.x
+            {
+                let temp = (2 * (min.x - a.x) - 1) * delta_y;
+                let msd = temp / delta_x_step;
+                y_pos += msd;
+
+                // Line misses the clip window entirely.
+                if y_pos > max.y
+                {
+                    return;
+                }
+
+                // Line starts.
+                if y_pos >= min.y
+                {
+                    let rem = temp - msd * delta_x_step;
+
+                    x_pos = min.x;
+                    error -= rem + delta_y;
+
+                    if rem > 0
+                    {
+                        y_pos += 1;
+                        error += delta_x_step;
+                    }
+                    set_exit = true;
+                }
+            }
+
+            // Line starts below the clip window.
+            if !set_exit && a.y < min.y
+            {
+                let temp = delta_x_step * (min.y - a.y);
+                let msd = temp / delta_y_step;
+                x_pos += msd;
+                let rem = temp % delta_y_step;
+
+                // Line misses clip window entirely.
+                if x_pos > max.x || (x_pos == max.x && rem >= delta_y)
+                {
+                    return;
+                }
+
+                y_pos = min.y;
+                error += rem;
+
+                if rem >= delta_y
+                {
+                    x_pos += 1;
+                    error -= delta_y_step;
+                }
+            }
+
+            let mut y_pos_end = b.y;
+            if b.x > max.x
+            {
+                let temp = delta_y_step * (max.x - a.x) + delta_y;
+                let msd = temp / delta_x_step;
+                y_pos_end = a.y + msd;
+
+                if (temp - msd * delta_x_step) == 0
+                {
+                    y_pos_end -= 1;
+                }
+            }
+
+            y_pos_end = y_pos_end.min(max.y) + 1;
+            if sign_x == -1
+            {
+                x_pos = -x_pos;
+            }
+
+            if sign_y == -1
+            {
+                y_pos = -y_pos;
+                y_pos_end = -y_pos_end;
+            }
+            delta_y_step -= delta_x_step;
+
+            while y_pos != y_pos_end
+            {
+                self.draw_pixel((x_pos, y_pos), col);
+
+                if error >= 0
+                {
+                    x_pos += sign_x;
+                    error -= delta_y_step;
+                }
+                else
+                {
+                    error += delta_x_step;
+                }
+
+                y_pos += sign_y;
             }
         }
     }
