@@ -26,10 +26,13 @@ impl App for MyApp
 
         for [mut v0, mut v1, mut v2] in self.obj.iter_faces()
         {
+            let t = Mat3::identity()
+                .scaled_3d([150.0, -150.0, 150.0]);
+
             // reframe
-            v0 = v0 * 150.0 + size / 2.0;
-            v1 = v1 * 150.0 + size / 2.0;
-            v2 = v2 * 150.0 + size / 2.0;
+            v0 = v0 * t + size / 2.0;
+            v1 = v1 * t + size / 2.0;
+            v2 = v2 * t + size / 2.0;
 
             // draw wireframe
             frame.draw_line(v0.xy().as_(), v1.xy().as_(), [0xff, 0xff, 0xff, 0xff]);
@@ -50,7 +53,7 @@ impl Default for MyApp
     {
         Self
         {
-            obj: Obj::load("res/cone.obj")
+            obj: Obj::load("res/head.obj")
         }
     }
 }
