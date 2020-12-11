@@ -10,7 +10,7 @@ pub trait Barycentric<T, V: Float>
 {
     /// convert this point into its barycentric coordinates in
     /// a triangle composed of vertices a, b, and c
-    fn to_barycentric(self, a: Vec2<T>, b: Vec2<T>, c: Vec2<T>) -> Vec3<V>;
+    fn into_barycentric(self, tri: [Vec2<T>; 3]) -> Vec3<V>;
 }
 
 impl<T, V: Float> Barycentric<T, V> for Vec2<T>
@@ -23,7 +23,7 @@ where T: Copy
     + Signed
     + One
 {
-    fn to_barycentric(self, a: Vec2<T>, b: Vec2<T>, c: Vec2<T>) -> Vec3<V>
+    fn into_barycentric(self, [a, b, c]: [Vec2<T>; 3]) -> Vec3<V>
     {
         // looking for vector <u, v, 1> orthogonal to <ab.x, ac.x, pa.x>
         // and <ab.y, ac.y, pa.y> where self is p

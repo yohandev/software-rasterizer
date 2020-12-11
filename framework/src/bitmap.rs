@@ -1,6 +1,6 @@
 use rayon::prelude::*;
 
-use crate::util::Bresenham;
+use crate::util::{ Bresenham, Barycentric };
 use crate::math::*;
 
 /// represents a bitmap, which can be iterated and
@@ -279,6 +279,37 @@ impl<T: Buf> Bitmap<T>
             }
             // draw line
             self.draw_pixel(p, col);
+        }
+    }
+
+    pub fn draw_triangle(&mut self, a: impl Into<Vec2<isize>>, b: impl Into<Vec2<isize>>, c: impl Into<Vec2<isize>>, col: impl Into<Rgba<u8>>)
+    {
+        // convert
+        let a = a.into();
+        let b = b.into();
+        let c = c.into();
+        let pts = [a, b, c];
+
+        // bounds
+        let max: Vec2<isize> = self.size().as_().into();
+
+        // bounding box
+        let mut bmax: Vec2<isize> = max.clone();
+        let mut bmin: Vec2<isize> = Vec2::zero();
+
+        // compute bounding box
+        for vert in &pts
+        {
+            bmin = bmin.map2(*vert, |m, v| m.min(v).max(0));
+            bmax = bmax.map3(*vert, max, |m, v, b| m.max(v).min(b));
+        }
+
+        for x in bmin.x..=bmax.x
+        {
+            for y in bmin.y..=bmax.y
+            {
+                //let bar: Vec3<f32> = Vec2::new(x, y).into_barycentric(pts);
+            }
         }
     }
 }
