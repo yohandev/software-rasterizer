@@ -5,34 +5,34 @@ use crate::math::*;
 pub struct Bresenham
 {
     // (current x, current y)
-    cur: Vec2<isize>,
+    cur: Vec2<i32>,
 
     // delta.x
-    dx: isize,
+    dx: i32,
     // delta.y.signum()
-    dy: isize,
+    dy: i32,
 
     // error
-    e: isize,
+    e: i32,
     // delta error
-    de: isize,
+    de: i32,
 
     // whether to flip (x,y) to (y, x)
     steep: bool,
 
     // last x position, inclusive
-    end: isize,
+    end: i32,
 }
 
 impl Bresenham
 {
     /// create a new iterator that yields points from a to b, inclusive
     #[inline]
-    pub fn new(a: impl Into<Vec2<isize>>, b: impl Into<Vec2<isize>>) -> Self
+    pub fn new(a: impl Into<Vec2<i32>>, b: impl Into<Vec2<i32>>) -> Self
     {
         // convert
-        let mut a: Vec2<isize> = a.into();
-        let mut b: Vec2<isize> = b.into();
+        let mut a: Vec2<i32> = a.into();
+        let mut b: Vec2<i32> = b.into();
 
         // adjust slope
         let steep = if (a.x - b.x).abs() < (a.y - b.y).abs()
@@ -72,7 +72,7 @@ impl Bresenham
 
 impl Iterator for Bresenham
 {
-    type Item = Vec2<isize>;
+    type Item = Vec2<i32>;
 
     #[inline]
     fn next(&mut self) -> Option<Self::Item>

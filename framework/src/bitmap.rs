@@ -114,7 +114,7 @@ impl<T: Buf> Bitmap<T>
     ///     }
     /// }
     ///```
-    pub fn iter_pixels(&self) -> impl Iterator<Item = (Vec2<usize>, &Rgba<u8>)> + '_
+    pub fn iter_pixels(&self) -> impl Iterator<Item = (Vec2<i32>, &Rgba<u8>)> + '_
     {
         let w = self.width();
         let h = self.height();
@@ -122,7 +122,7 @@ impl<T: Buf> Bitmap<T>
         self.pixels()
             .iter()
             .enumerate()
-            .map(move |(i, px)| (Vec2::new(i % w, i / h), px))
+            .map(move |(i, px)| (Vec2::new((i % w) as i32, (i / h) as i32), px))
     }
 
     /// returns a mutable iterator over the pixels in this bitmap
@@ -141,7 +141,7 @@ impl<T: Buf> Bitmap<T>
     ///     }
     /// }
     ///```
-    pub fn iter_pixels_mut(&mut self) -> impl Iterator<Item = (Vec2<usize>, &mut Rgba<u8>)> + '_
+    pub fn iter_pixels_mut(&mut self) -> impl Iterator<Item = (Vec2<i32>, &mut Rgba<u8>)> + '_
     {
         let w = self.width();
         let h = self.height();
@@ -149,7 +149,7 @@ impl<T: Buf> Bitmap<T>
         self.pixels_mut()
             .iter_mut()
             .enumerate()
-            .map(move |(i, px)| (Vec2::new(i % w, i / h), px))
+            .map(move |(i, px)| (Vec2::new((i % w) as i32, (i / h) as i32), px))
     }
 
     /// returns an parallel iterator over the pixels in this bitmap
@@ -163,7 +163,7 @@ impl<T: Buf> Bitmap<T>
     ///     }
     /// });
     ///```
-    pub fn par_iter_pixels(&self) -> impl ParallelIterator<Item = (Vec2<usize>, &Rgba<u8>)> + '_
+    pub fn par_iter_pixels(&self) -> impl ParallelIterator<Item = (Vec2<i32>, &Rgba<u8>)> + '_
     {
         let w = self.width();
         let h = self.height();
@@ -171,7 +171,7 @@ impl<T: Buf> Bitmap<T>
         self.pixels()
             .par_iter()
             .enumerate()
-            .map(move |(i, px)| (Vec2::new(i % w, i / h), px))
+            .map(move |(i, px)| (Vec2::new((i % w) as i32, (i / h) as i32), px))
     }
 
     /// returns a parallel, mutable iterator over the pixels in this bitmap
@@ -190,7 +190,7 @@ impl<T: Buf> Bitmap<T>
     ///     }
     /// });
     ///```
-    pub fn par_iter_pixels_mut(&mut self) -> impl ParallelIterator<Item = (Vec2<usize>, &mut Rgba<u8>)> + '_
+    pub fn par_iter_pixels_mut(&mut self) -> impl ParallelIterator<Item = (Vec2<i32>, &mut Rgba<u8>)> + '_
     {
         let w = self.width();
         let h = self.height();
@@ -198,12 +198,12 @@ impl<T: Buf> Bitmap<T>
         self.pixels_mut()
             .par_iter_mut()
             .enumerate()
-            .map(move |(i, px)| (Vec2::new(i % w, i / h), px))
+            .map(move |(i, px)| (Vec2::new((i % w) as i32, (i / h) as i32), px))
     }
 
     /// draw a single pixel to this bitmap. panics if out of bounds
     #[inline]
-    pub fn draw_pixel(&mut self, pos: impl Into<Vec2<isize>>, col: impl Into<Rgba<u8>>)
+    pub fn draw_pixel(&mut self, pos: impl Into<Vec2<i32>>, col: impl Into<Rgba<u8>>)
     {
         // convert
         let pos = pos.into();
@@ -219,14 +219,14 @@ impl<T: Buf> Bitmap<T>
     /// pixels and (optionally) translating it
     ///
     /// the source bitmap isn't affected
-    pub fn draw_bitmap(&mut self, src: &Bitmap<impl Buf>, pos: impl Into<Vec2<isize>>)
+    pub fn draw_bitmap(&mut self, src: &Bitmap<impl Buf>, pos: impl Into<Vec2<i32>>)
     {
         // convert
-        let pos: Vec2<isize> = pos.into();
+        let pos: Vec2<i32> = pos.into();
 
         // givens
-        let dst_size: Vec2<isize> = self.size().as_::<isize>().into();
-        let src_size: Vec2<isize> = src.size().as_::<isize>().into();
+        let dst_size: Vec2<i32> = self.size().as_::<i32>().into();
+        let src_size: Vec2<i32> = src.size().as_::<i32>().into();
 
         let src_buf = src.raw_pixels();
         let dst_buf = self.raw_pixels_mut();
@@ -261,11 +261,11 @@ impl<T: Buf> Bitmap<T>
 
     /// draws a line on top of this bitmap. the line is clipped
     /// if some(or all) of its pixels are out of bounds
-    pub fn draw_line(&mut self, a: impl Into<Vec2<isize>>, b: impl Into<Vec2<isize>>, col: impl Into<Rgba<u8>>)
+    pub fn draw_line(&mut self, a: impl Into<Vec2<i32>>, b: impl Into<Vec2<i32>>, col: impl Into<Rgba<u8>>)
     {
         // convert
         let col = col.into();
-        let max = self.size().as_::<isize>();
+        let max = self.size().as_::<i32>();
 
         for p in Bresenham::new(a, b)
         {
@@ -282,7 +282,7 @@ impl<T: Buf> Bitmap<T>
         }
     }
 
-    pub fn draw_triangle(&mut self, a: impl Into<Vec2<isize>>, b: impl Into<Vec2<isize>>, c: impl Into<Vec2<isize>>, col: impl Into<Rgba<u8>>)
+    pub fn draw_triangle(&mut self, a: impl Into<Vec2<i32>>, b: impl Into<Vec2<i32>>, c: impl Into<Vec2<i32>>, col: impl Into<Rgba<u8>>)
     {
         // convert
         let a = a.into();
@@ -291,11 +291,11 @@ impl<T: Buf> Bitmap<T>
         let pts = [a, b, c];
 
         // bounds
-        let max: Vec2<isize> = self.size().as_().into();
+        let max: Vec2<i32> = self.size().as_().into();
 
         // bounding box
-        let mut bmax: Vec2<isize> = max.clone();
-        let mut bmin: Vec2<isize> = Vec2::zero();
+        let mut bmax: Vec2<i32> = max.clone();
+        let mut bmin: Vec2<i32> = Vec2::zero();
 
         // compute bounding box
         for vert in &pts
