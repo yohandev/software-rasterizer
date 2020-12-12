@@ -294,7 +294,10 @@ impl<T: Buf> Bitmap<T>
         let pts = [a, b, c];
 
         // bounds
-        let bounds: Vec2<i32> = self.size().as_().into();
+        let bounds: Vec2<i32> = self
+            .size()
+            .map(|n| n as i32 - 1)
+            .into();
 
         // bounding box
         let mut bbox_max: Vec2<i32> = bounds.clone();
@@ -307,10 +310,12 @@ impl<T: Buf> Bitmap<T>
             bbox_min = bbox_min.map3(*vert, bounds, |m, v, b| m.max(v).min(b));
         }
 
-        for x in bbox_max.x..bbox_min.x
+        // iterate bounding box
+        for x in bbox_max.x..=bbox_min.x
         {
-            for y in bbox_max.y..bbox_min.y
+            for y in bbox_max.y..=bbox_min.y
             {
+                // cartesian and barycentric coords
                 let p = Vec2::new(x, y);
                 let b: Vec3<f32> = p.into_barycentric(pts);
                 
@@ -319,6 +324,8 @@ impl<T: Buf> Bitmap<T>
                 {
                     continue;
                 }
+
+                // draw pixel
                 self.draw_pixel(p, col)
             }
         }
