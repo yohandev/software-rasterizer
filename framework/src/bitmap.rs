@@ -282,12 +282,15 @@ impl<T: Buf> Bitmap<T>
         }
     }
 
+    /// draws a triangle on top of this bitmap. the triangle is
+    /// clipped if some(or all) of its pixels are out of bounds
     pub fn draw_triangle(&mut self, a: impl Into<Vec2<i32>>, b: impl Into<Vec2<i32>>, c: impl Into<Vec2<i32>>, col: impl Into<Rgba<u8>>)
     {
         // convert
         let a = a.into();
         let b = b.into();
         let c = c.into();
+        let col = col.into();
         let pts = [a, b, c];
 
         // bounds
@@ -308,7 +311,15 @@ impl<T: Buf> Bitmap<T>
         {
             for y in bmin.y..=bmax.y
             {
-                //let bar: Vec3<f32> = Vec2::new(x, y).into_barycentric(pts);
+                let p = Vec2::new(x, y);
+                let b: Vec3<f32> = p.into_barycentric(pts);
+                
+                // out of triangle
+                if b.x < 0.0 || b.y < 0.0 || b.z < 0.0
+                {
+                    continue;
+                }
+                self.draw_pixel(p, col)
             }
         }
     }

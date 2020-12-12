@@ -1,6 +1,4 @@
-use std::ops::{ Mul, Sub, Div };
-use std::cmp::PartialOrd;
-use num::{ One, Signed, Float };
+use num::{ Signed, Float, traits::AsPrimitive };
 
 use crate::math::*;
 
@@ -13,15 +11,7 @@ pub trait Barycentric<T, V: Float>
     fn into_barycentric(self, tri: [Vec2<T>; 3]) -> Vec3<V>;
 }
 
-impl<T, V: Float> Barycentric<T, V> for Vec2<T>
-where T: Copy
-    + Sub<T, Output = T>
-    + Mul<T, Output = T>
-    + Div<T, Output = T>
-    + Into<V>
-    + PartialOrd
-    + Signed
-    + One
+impl<V: Float + 'static, T: Signed + AsPrimitive<V>> Barycentric<T, V> for Vec2<T>
 {
     fn into_barycentric(self, [a, b, c]: [Vec2<T>; 3]) -> Vec3<V>
     {
@@ -32,11 +22,11 @@ where T: Copy
         let v2 = self - a;
 
         // denominator
-        let den = V::one() / (v0.x * v1.y - v1.x * v0.y).into();
+        let den = V::one() / (v0.x * v1.y - v1.x * v0.y).as_();
 
         // computer coords
-        let v = (v2.x * v1.y - v1.x * v2.y).into() * den;
-        let w = (v0.x * v2.y - v2.x * v0.y).into() * den;
+        let v = (v2.x * v1.y - v1.x * v2.y).as_() * den;
+        let w = (v0.x * v2.y - v2.x * v0.y).as_() * den;
         let u = V::one() - v - w;
 
         Vec3::new(u, v, w)
