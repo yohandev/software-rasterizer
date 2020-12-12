@@ -41,6 +41,7 @@ impl App for MyApp
             v2 = v2 * t + size / 2.0;
 
             // draw wireframe
+            frame.draw_triangle(v0.as_(), v1.as_(), v2.as_(), [0xff, 0xff, 0xff, 0xff]);
             frame.draw_line(v0.xy().as_(), v1.xy().as_(), [r, g, b, 0xff]);
             frame.draw_line(v0.xy().as_(), v2.xy().as_(), [r, g, b, 0xff]);
             frame.draw_line(v1.xy().as_(), v2.xy().as_(), [r, g, b, 0xff]);

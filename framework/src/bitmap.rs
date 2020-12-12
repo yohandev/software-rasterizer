@@ -294,22 +294,22 @@ impl<T: Buf> Bitmap<T>
         let pts = [a, b, c];
 
         // bounds
-        let max: Vec2<i32> = self.size().as_().into();
+        let bounds: Vec2<i32> = self.size().as_().into();
 
         // bounding box
-        let mut bmax: Vec2<i32> = max.clone();
-        let mut bmin: Vec2<i32> = Vec2::zero();
+        let mut bbox_max: Vec2<i32> = bounds.clone();
+        let mut bbox_min: Vec2<i32> = Vec2::zero();
 
         // compute bounding box
         for vert in &pts
         {
-            bmin = bmin.map2(*vert, |m, v| m.min(v).max(0));
-            bmax = bmax.map3(*vert, max, |m, v, b| m.max(v).min(b));
+            bbox_max = bbox_max.map2(*vert, |m, v| m.min(v).max(0));
+            bbox_min = bbox_min.map3(*vert, bounds, |m, v, b| m.max(v).min(b));
         }
 
-        for x in bmin.x..=bmax.x
+        for x in bbox_max.x..bbox_min.x
         {
-            for y in bmin.y..=bmax.y
+            for y in bbox_max.y..bbox_min.y
             {
                 let p = Vec2::new(x, y);
                 let b: Vec3<f32> = p.into_barycentric(pts);
