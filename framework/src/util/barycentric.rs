@@ -1,4 +1,4 @@
-use num::{ Signed, Float, traits::AsPrimitive };
+use num_traits::{ Signed, Float, AsPrimitive };
 
 use crate::math::*;
 
