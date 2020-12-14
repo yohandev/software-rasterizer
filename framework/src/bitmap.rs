@@ -253,34 +253,6 @@ impl<T: Buf> Bitmap<T>
             dst_buf[dst_str..dst_end].copy_from_slice(&src_buf[src_str..src_end]);
         }
     }
-
-    /// draws a line on top of this bitmap. the line is clipped
-    /// if some(or all) of its pixels are out of bounds
-    pub fn draw_line(&mut self, a: Vec2<i32>, b: Vec2<i32>, col: Rgba<u8>)
-    {
-        // convert
-        let max = self.size().as_::<i32>();
-
-        for p in Bresenham::new_bounded(a, b, max)
-        {
-            // draw line
-            self.set(p, col);
-        }
-    }
-
-    /// draws a triangle on top of this bitmap. the triangle is
-    /// clipped if some(or all) of its pixels are out of bounds
-    pub fn draw_triangle(&mut self, pts: [Vec2<i32>; 3], col: Rgba<u8>)
-    {
-        // convert
-        let max = self.size().as_();
-
-        for p in Triangle::new_bounded(pts, max)
-        {
-            // draw triangle
-            self.set(p, col);
-        }
-    }
 }
 
 /// blanket implementation

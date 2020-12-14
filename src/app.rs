@@ -1,3 +1,4 @@
+use framework::util::{ Bresenham, Triangle };
 use framework::math::*;
 use framework::*;
 
@@ -21,7 +22,7 @@ impl App for MyApp
             px.a = 0xff;
         });
         // reset zbuf
-        let mut z_buf = [f32::MIN; Self::AREA];
+        let mut z_buf = [f32::MIN; AREA];
 
         // frame size as a float vector
         let size: Vec2<f32> = Self::SIZE.as_().into();
@@ -48,10 +49,10 @@ impl App for MyApp
             let wht = Rgba::white();
 
             // draw wireframe
-            frame.draw_triangle(pts, col);
-            frame.draw_line(pts[0], pts[1], wht);
-            frame.draw_line(pts[0], pts[2], wht);
-            frame.draw_line(pts[1], pts[2], wht);
+            draw_triangle(frame, pts, col);
+            draw_line(frame, pts[0], pts[1], wht);
+            draw_line(frame, pts[0], pts[2], wht);
+            draw_line(frame, pts[1], pts[2], wht);
         }
     }
 
@@ -72,8 +73,40 @@ impl Default for MyApp
     }
 }
 
-impl MyApp
+/// width * height, in pixels
+const AREA: usize = MyApp::SIZE.w * MyApp::SIZE.h;
+
+/// draw a pixel to the frame at the given position. panics if
+/// out of bound
+fn draw_pixel(frame: &mut Frame, pos: Vec2<i32>, col: Rgba<u8>)
 {
-    /// width * height, in pixels
-    const AREA: usize = Self::SIZE.w * Self::SIZE.h;
+    frame.set(pos, col);
+}
+
+/// draws a line to the frame. the line is clipped if some(or all)
+/// of its pixels are out of bounds
+fn draw_line(frame: &mut Frame, a: Vec2<i32>, b: Vec2<i32>, col: Rgba<u8>)
+{
+    // convert
+    let max = frame.size().as_();
+
+    for p in Bresenham::new_bounded(a, b, max)
+    {
+        // draw line
+        draw_pixel(frame, p, col);
+    }
+}
+
+/// draws a triangle on top of the frame. the triangle is
+/// clipped if some(or all) of its pixels are out of bounds
+fn draw_triangle(frame: &mut Frame, pts: [Vec2<i32>; 3], col: Rgba<u8>)
+{
+    // convert
+    let max = frame.size().as_();
+
+    for p in Triangle::new_bounded(pts, max)
+    {
+        // draw triangle
+        draw_pixel(frame, p, col);
+    }
 }
