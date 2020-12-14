@@ -256,22 +256,13 @@ impl<T: Buf> Bitmap<T>
 
     /// draws a line on top of this bitmap. the line is clipped
     /// if some(or all) of its pixels are out of bounds
-    pub fn draw_line(&mut self, a: impl Into<Vec2<i32>>, b: impl Into<Vec2<i32>>, col: impl Into<Rgba<u8>>)
+    pub fn draw_line(&mut self, a: Vec2<i32>, b: Vec2<i32>, col: Rgba<u8>)
     {
         // convert
-        let col = col.into();
         let max = self.size().as_::<i32>();
 
-        for p in Bresenham::new(a, b)
+        for p in Bresenham::new_bounded(a, b, max)
         {
-            // out of bitmap
-            if p.x < 0
-            || p.y < 0
-            || p.x >= max.w
-            || p.y >= max.h
-            {
-                continue;
-            }
             // draw line
             self.set(p, col);
         }
