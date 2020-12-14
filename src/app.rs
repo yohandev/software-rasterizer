@@ -7,6 +7,7 @@ use crate::obj::Obj;
 pub struct MyApp
 {
     obj: Obj,
+    z_buf: [f32; AREA],
 }
 
 impl App for MyApp
@@ -69,6 +70,7 @@ impl Default for MyApp
         Self
         {
             obj: Obj::load("res/head.obj"),
+            z_buf: [f32::MIN; AREA],
         }
     }
 }
@@ -78,14 +80,14 @@ const AREA: usize = MyApp::SIZE.w * MyApp::SIZE.h;
 
 /// draw a pixel to the frame at the given position. panics if
 /// out of bound
-fn draw_pixel(frame: &mut Frame, pos: Vec2<i32>, col: Rgba<u8>)
+fn draw_pixel(frame: &mut Frame, zbuf: &[f32; AREA], pos: Vec2<i32>, col: Rgba<u8>)
 {
     frame.set(pos, col);
 }
 
 /// draws a line to the frame. the line is clipped if some(or all)
 /// of its pixels are out of bounds
-fn draw_line(frame: &mut Frame, a: Vec2<i32>, b: Vec2<i32>, col: Rgba<u8>)
+fn draw_line(frame: &mut Frame,  zbuf: &[f32; AREA], a: Vec2<i32>, b: Vec2<i32>, col: Rgba<u8>)
 {
     // convert
     let max = frame.size().as_();
@@ -99,7 +101,7 @@ fn draw_line(frame: &mut Frame, a: Vec2<i32>, b: Vec2<i32>, col: Rgba<u8>)
 
 /// draws a triangle on top of the frame. the triangle is
 /// clipped if some(or all) of its pixels are out of bounds
-fn draw_triangle(frame: &mut Frame, pts: [Vec2<i32>; 3], col: Rgba<u8>)
+fn draw_triangle(frame: &mut Frame, zbuf: &[f32; AREA], pts: [Vec2<i32>; 3], col: Rgba<u8>)
 {
     // convert
     let max = frame.size().as_();

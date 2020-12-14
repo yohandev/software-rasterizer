@@ -1,6 +1,5 @@
 use rayon::prelude::*;
 
-use crate::util::{ Bresenham, Triangle };
 use crate::math::*;
 
 /// represents a bitmap, which can be iterated and
