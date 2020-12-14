@@ -7,7 +7,6 @@ use crate::obj::Obj;
 pub struct MyApp
 {
     obj: Obj,
-    z_buf: [f32; AREA],
 }
 
 impl App for MyApp
@@ -45,15 +44,15 @@ impl App for MyApp
             v2 = v2 * t + size / 2.0;
 
             // convert
-            let pts = [v0.xy().as_(), v1.xy().as_(), v2.xy().as_()];
+            // let pts = [v0.xy().as_(), v1.xy().as_(), v2.xy().as_()];
             let col = [r, g, b, 0xff].into();
-            let wht = Rgba::white();
+            // let wht = Rgba::white();
 
             // draw wireframe
-            draw_triangle(frame, pts, col);
-            draw_line(frame, pts[0], pts[1], wht);
-            draw_line(frame, pts[0], pts[2], wht);
-            draw_line(frame, pts[1], pts[2], wht);
+            draw_triangle(frame, &mut z_buf, [v0, v1, v2], col);
+            // draw_line(frame, pts[0], pts[1], wht);
+            // draw_line(frame, pts[0], pts[2], wht);
+            // draw_line(frame, pts[1], pts[2], wht);
         }
     }
 
@@ -70,7 +69,6 @@ impl Default for MyApp
         Self
         {
             obj: Obj::load("res/head.obj"),
-            z_buf: [f32::MIN; AREA],
         }
     }
 }
@@ -80,14 +78,14 @@ const AREA: usize = MyApp::SIZE.w * MyApp::SIZE.h;
 
 /// draw a pixel to the frame at the given position. panics if
 /// out of bound
-fn draw_pixel(frame: &mut Frame, zbuf: &[f32; AREA], pos: Vec2<i32>, col: Rgba<u8>)
+fn draw_pixel(frame: &mut Frame, pos: Vec2<i32>, col: Rgba<u8>)
 {
     frame.set(pos, col);
 }
 
 /// draws a line to the frame. the line is clipped if some(or all)
 /// of its pixels are out of bounds
-fn draw_line(frame: &mut Frame,  zbuf: &[f32; AREA], a: Vec2<i32>, b: Vec2<i32>, col: Rgba<u8>)
+fn draw_line(frame: &mut Frame, a: Vec2<i32>, b: Vec2<i32>, col: Rgba<u8>)
 {
     // convert
     let max = frame.size().as_();
@@ -101,14 +99,26 @@ fn draw_line(frame: &mut Frame,  zbuf: &[f32; AREA], a: Vec2<i32>, b: Vec2<i32>,
 
 /// draws a triangle on top of the frame. the triangle is
 /// clipped if some(or all) of its pixels are out of bounds
-fn draw_triangle(frame: &mut Frame, zbuf: &[f32; AREA], pts: [Vec2<i32>; 3], col: Rgba<u8>)
+fn draw_triangle(frame: &mut Frame, zbuf: &mut [f32; AREA], tri: [Vec3<f32>; 3], col: Rgba<u8>)
 {
     // convert
     let max = frame.size().as_();
+    let pts = [tri[0].xy().as_(), tri[1].xy().as_(), tri[2].xy().as_()];
 
-    for p in Triangle::new_bounded(pts, max)
+    for (pt, br) in Triangle::new_bounded(pts, max)
     {
-        // draw triangle
-        draw_pixel(frame, p, col);
+        // triangle point depth
+        let pt_z = tri[0].z * br.x + tri[1].z * br.y + tri[2].z * br.z;
+        // depth buffer z
+        let bf_z = &mut zbuf[pt.x as usize * MyApp::SIZE.w + pt.y as usize];
+
+        // depth comparison
+        if *bf_z < pt_z
+        {
+            *bf_z = pt_z;
+
+            // draw triangle
+            draw_pixel(frame, pt, col);
+        }
     }
 }

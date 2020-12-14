@@ -8,7 +8,7 @@ pub struct Triangle
     // (current x, current y)
     cur: Vec2<i32>,
 
-    /// points composing the triangle
+    /// points composing the triangle.
     pts: [Vec2<i32>; 3],
 
     /// minimum(upper-left corner) of the bounding box
@@ -20,13 +20,14 @@ pub struct Triangle
 impl Triangle
 {
     /// create a new iterator that yields points inside `pts`
+    /// the tuple returned is in (cartesian, barycentric) coordinates
     ///
     /// Differs from [Triangle::new] in that it skips points out of the
     /// canvas's bounds. `size` is higher-bound exclusive.
     ///
     /// [Triangle::new]: crate::util::Triangle::new
     #[inline]
-    pub fn new_bounded(pts: [Vec2<i32>; 3], size: Extent2<i32>) -> impl Iterator<Item = Vec2<i32>>
+    pub fn new_bounded(pts: [Vec2<i32>; 3], size: Extent2<i32>) -> impl Iterator<Item = (Vec2<i32>, Vec3<f32>)>
     {
         // bounds
         let size: Vec2<i32> = size
@@ -52,7 +53,7 @@ impl Triangle
 
     /// create a new iterator that yields points inside `pts`
     #[inline]
-    pub fn new(pts: [Vec2<i32>; 3]) -> impl Iterator<Item = Vec2<i32>>
+    pub fn new(pts: [Vec2<i32>; 3]) -> impl Iterator<Item = (Vec2<i32>, Vec3<f32>)>
     {
         Self::new_bounded(pts, Extent2::broadcast(i32::MAX))
     }
@@ -60,7 +61,7 @@ impl Triangle
 
 impl Iterator for Triangle
 {
-    type Item = Vec2<i32>;
+    type Item = (Vec2<i32>, Vec3<f32>);
 
     #[inline]
     fn next(&mut self) -> Option<Self::Item>
@@ -85,7 +86,7 @@ impl Iterator for Triangle
             // inside the triangle
             if b.x >= 0.0 && b.y >= 0.0 && b.z >= 0.0
             {
-                return Some(p);
+                return Some((p, b));
             }
         }
         // done
