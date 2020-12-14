@@ -28,12 +28,8 @@ impl Bresenham
 {
     /// create a new iterator that yields points from a to b, inclusive
     #[inline]
-    pub fn new(a: impl Into<Vec2<i32>>, b: impl Into<Vec2<i32>>) -> Self
+    pub fn new(mut a: Vec2<i32>, mut b: Vec2<i32>) -> impl Iterator<Item = Vec2<i32>>
     {
-        // convert
-        let mut a: Vec2<i32> = a.into();
-        let mut b: Vec2<i32> = b.into();
-
         // adjust slope
         let steep = if (a.x - b.x).abs() < (a.y - b.y).abs()
         {
@@ -67,6 +63,18 @@ impl Bresenham
             steep,              // steep or not
             end: b.x,           // ending x
         }
+    }
+
+    /// create a new iterator that yields points from a to b, inclusive
+    ///
+    /// Differs from [Bresenham::new] in that it skips points
+    /// out of the canvas's bounds. `size` is higher-bound exclusive.
+    ///
+    /// [Bresenham::new]: crate::util::Bresenham::new
+    pub fn new_bounded(a: Vec2<i32>, b: Vec2<i32>, size: Extent2<i32>) -> impl Iterator<Item = Vec2<i32>>
+    {
+        Self::new(a, b)
+            .filter(move |p| p.x >= 0 && p.y >= 0 && p.x < size.w && p.y < size.h)
     }
 }
 

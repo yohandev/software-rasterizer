@@ -5,7 +5,7 @@ use crate::obj::Obj;
 
 pub struct MyApp
 {
-    obj: Obj
+    obj: Obj,
 }
 
 impl App for MyApp
@@ -20,6 +20,8 @@ impl App for MyApp
             px.b = 0x00;
             px.a = 0xff;
         });
+        // reset zbuf
+        let mut z_buf = [f32::MIN; Self::AREA];
 
         // frame size as a float vector
         let size: Vec2<f32> = Self::SIZE.as_().into();
@@ -60,7 +62,13 @@ impl Default for MyApp
     {
         Self
         {
-            obj: Obj::load("res/head.obj")
+            obj: Obj::load("res/head.obj"),
         }
     }
+}
+
+impl MyApp
+{
+    /// width * height, in pixels
+    const AREA: usize = Self::SIZE.w * Self::SIZE.h;
 }

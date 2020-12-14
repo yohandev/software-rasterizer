@@ -203,27 +203,22 @@ impl<T: Buf> Bitmap<T>
 
     /// draw a single pixel to this bitmap. panics if out of bounds
     #[inline]
-    pub fn draw_pixel(&mut self, pos: impl Into<Vec2<i32>>, col: impl Into<Rgba<u8>>)
+    pub fn set(&mut self, pos: Vec2<i32>, col: Rgba<u8>)
     {
-        // convert
-        let pos = pos.into();
         // index
         let ind = (pos.y as usize * self.width() + pos.x as usize) * 4;
 
         self
             .raw_pixels_mut()[ind..ind + 4]
-            .copy_from_slice(&col.into());
+            .copy_from_slice(&col);
     }
 
     /// paste another bitmap on top of this one, clipping any invisible
     /// pixels and (optionally) translating it
     ///
     /// the source bitmap isn't affected
-    pub fn draw_bitmap(&mut self, src: &Bitmap<impl Buf>, pos: impl Into<Vec2<i32>>)
+    pub fn paste(&mut self, pos: Vec2<i32>, src: &Bitmap<impl Buf>)
     {
-        // convert
-        let pos: Vec2<i32> = pos.into();
-
         // givens
         let dst_size: Vec2<i32> = self.size().as_::<i32>().into();
         let src_size: Vec2<i32> = src.size().as_::<i32>().into();
@@ -278,7 +273,7 @@ impl<T: Buf> Bitmap<T>
                 continue;
             }
             // draw line
-            self.draw_pixel(p, col);
+            self.set(p, col);
         }
     }
 
@@ -326,7 +321,7 @@ impl<T: Buf> Bitmap<T>
                 }
 
                 // draw pixel
-                self.draw_pixel(p, col)
+                self.set(p, col)
             }
         }
     }
