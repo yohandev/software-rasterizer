@@ -29,7 +29,7 @@ pub fn triangle(frame: &mut Frame, depth: &mut [f32], tri: [Vec3<f32>; 3], col: 
         // triangle point depth
         let pt_z = tri[0].z * br.x + tri[1].z * br.y + tri[2].z * br.z;
         // depth buffer z
-        let bf_z = &mut depth[pt.x as usize * frame.width() + pt.y as usize];
+        let bf_z = &mut depth[pt.y as usize * frame.width() + pt.x as usize];
 
         // depth comparison
         if *bf_z < pt_z
