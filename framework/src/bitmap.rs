@@ -205,11 +205,43 @@ impl<T: Buf> Bitmap<T>
     pub fn set(&mut self, pos: Vec2<i32>, col: Rgba<u8>)
     {
         // index
-        let ind = (pos.y as usize * self.width() + pos.x as usize) * 4;
+        let ind = pos.y as usize * self.width() + pos.x as usize;
 
-        self
-            .raw_pixels_mut()[ind..ind + 4]
-            .copy_from_slice(&col);
+        // set
+        self.pixels_mut()[ind] = col;
+    }
+
+    /// fills this entire bitmap with a color. this is much more efficient
+    /// than iterating through the pixels and individually setting their
+    /// colors.
+    pub fn clear(&mut self, col: Rgba<u8>)
+    {
+        // get the buffer
+        let buf = self.pixels_mut();
+
+        // set the first pixel
+        buf[0] = col;
+
+        // size is how much has been done so far(also the cursor)
+        // rem is how much to be populated and may go below zero
+        let mut siz = 1;
+        let mut rem = buf.len() as isize;
+
+        while rem > 0
+        {
+            // split what's already been cleared and what's remaining
+            let (src, dst) = buf.split_at_mut(siz);
+
+            // upper-bound index to copy
+            let cpy = dst.len().min(siz);
+
+            // copy over to clear some more
+            dst[0..cpy].copy_from_slice(&src[0..cpy]);
+
+            // grow by a factor of 2
+            rem -= siz as isize;
+            siz *= 2;
+        }
     }
 
     /// paste another bitmap on top of this one, clipping any invisible

@@ -15,13 +15,8 @@ impl App for MyApp
     fn render(&mut self, frame: &mut Frame)
     {
         // reset frame
-        frame.par_iter_pixels_mut().for_each(|(_, px)|
-        {
-            px.r = 0x00;
-            px.g = 0x00;
-            px.b = 0x00;
-            px.a = 0xff;
-        });
+        frame.clear(Rgba::black());
+        
         // reset the Z buffer
         let mut depth = [f32::MIN; Self::SIZE.w * Self::SIZE.h];
 
