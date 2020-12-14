@@ -71,6 +71,7 @@ impl Bresenham
     /// out of the canvas's bounds. `size` is higher-bound exclusive.
     ///
     /// [Bresenham::new]: crate::util::Bresenham::new
+    #[inline]
     pub fn new_bounded(a: Vec2<i32>, b: Vec2<i32>, size: Extent2<i32>) -> impl Iterator<Item = Vec2<i32>>
     {
         Self::new(a, b)

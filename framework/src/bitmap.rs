@@ -1,6 +1,6 @@
 use rayon::prelude::*;
 
-use crate::util::{ Bresenham, Barycentric };
+use crate::util::{ Bresenham, Triangle };
 use crate::math::*;
 
 /// represents a bitmap, which can be iterated and
@@ -270,50 +270,15 @@ impl<T: Buf> Bitmap<T>
 
     /// draws a triangle on top of this bitmap. the triangle is
     /// clipped if some(or all) of its pixels are out of bounds
-    pub fn draw_triangle(&mut self, a: impl Into<Vec2<i32>>, b: impl Into<Vec2<i32>>, c: impl Into<Vec2<i32>>, col: impl Into<Rgba<u8>>)
+    pub fn draw_triangle(&mut self, pts: [Vec2<i32>; 3], col: Rgba<u8>)
     {
         // convert
-        let a = a.into();
-        let b = b.into();
-        let c = c.into();
-        let col = col.into();
-        let pts = [a, b, c];
+        let max = self.size().as_();
 
-        // bounds
-        let bounds: Vec2<i32> = self
-            .size()
-            .map(|n| n as i32 - 1)
-            .into();
-
-        // bounding box
-        let mut bbox_max: Vec2<i32> = bounds.clone();
-        let mut bbox_min: Vec2<i32> = Vec2::zero();
-
-        // compute bounding box
-        for vert in &pts
+        for p in Triangle::new_bounded(pts, max)
         {
-            bbox_max = bbox_max.map2(*vert, |m, v| m.min(v).max(0));
-            bbox_min = bbox_min.map3(*vert, bounds, |m, v, b| m.max(v).min(b));
-        }
-
-        // iterate bounding box
-        for x in bbox_max.x..=bbox_min.x
-        {
-            for y in bbox_max.y..=bbox_min.y
-            {
-                // cartesian and barycentric coords
-                let p = Vec2::new(x, y);
-                let b: Vec3<f32> = p.into_barycentric(pts);
-                
-                // out of triangle
-                if b.x < 0.0 || b.y < 0.0 || b.z < 0.0
-                {
-                    continue;
-                }
-
-                // draw pixel
-                self.set(p, col)
-            }
+            // draw triangle
+            self.set(p, col);
         }
     }
 }

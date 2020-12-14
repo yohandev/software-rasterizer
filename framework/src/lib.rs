@@ -2,8 +2,9 @@ mod bitmap;
 mod frame;
 mod math2;
 mod time;
-mod util;
 mod app;
+
+pub mod util;
 
 pub use bitmap::Bitmap;
 pub use frame::Frame;

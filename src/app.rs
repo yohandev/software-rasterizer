@@ -42,11 +42,15 @@ impl App for MyApp
             v1 = v1 * t + size / 2.0;
             v2 = v2 * t + size / 2.0;
 
+            // convert
+            let pts = [v0.xy().as_(), v1.xy().as_(), v2.xy().as_()];
+            let col = [r, g, b, 0xff].into();
+
             // draw wireframe
-            frame.draw_triangle(v0.as_(), v1.as_(), v2.as_(), [0xff, 0xff, 0xff, 0xff]);
-            frame.draw_line(v0.xy().as_(), v1.xy().as_(), [r, g, b, 0xff]);
-            frame.draw_line(v0.xy().as_(), v2.xy().as_(), [r, g, b, 0xff]);
-            frame.draw_line(v1.xy().as_(), v2.xy().as_(), [r, g, b, 0xff]);
+            frame.draw_triangle(pts, col);
+            //frame.draw_line(pts[0], pts[1], col);
+            //frame.draw_line(pts[0], pts[2], col);
+            //frame.draw_line(pts[1], pts[2], col);
         }
     }
 
