@@ -1,3 +1,4 @@
+mod draw;
 mod app;
 mod obj;
 
