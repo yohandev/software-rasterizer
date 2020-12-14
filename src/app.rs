@@ -10,7 +10,7 @@ pub struct MyApp
 
 impl App for MyApp
 {
-    fn render(&self, frame: &mut Frame)
+    fn render(&mut self, frame: &mut Frame)
     {
         // reset frame
         frame.par_iter_pixels_mut().for_each(|(_, px)|
@@ -45,12 +45,13 @@ impl App for MyApp
             // convert
             let pts = [v0.xy().as_(), v1.xy().as_(), v2.xy().as_()];
             let col = [r, g, b, 0xff].into();
+            let wht = Rgba::white();
 
             // draw wireframe
             frame.draw_triangle(pts, col);
-            //frame.draw_line(pts[0], pts[1], col);
-            //frame.draw_line(pts[0], pts[2], col);
-            //frame.draw_line(pts[1], pts[2], col);
+            frame.draw_line(pts[0], pts[1], wht);
+            frame.draw_line(pts[0], pts[2], wht);
+            frame.draw_line(pts[1], pts[2], wht);
         }
     }
 

@@ -12,7 +12,7 @@ pub trait App: 'static
     const SIZE: Extent2<usize> = Extent2::new(600, 400);
 
     /// render to the window
-    fn render(&self, frame: &mut Frame);
+    fn render(&mut self, frame: &mut Frame);
 
     /// update the state of the app
     fn update(&mut self, time: &Time);
