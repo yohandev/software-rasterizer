@@ -4,7 +4,7 @@ use crate::math::*;
 
 /// trait implemented by types that can be converted to
 /// barycentric coordinates
-pub trait Barycentric<T, V: Float>
+pub trait Barycentric<T, V>
 {
     /// convert this point into its barycentric coordinates in
     /// a triangle composed of vertices a, b, and c
