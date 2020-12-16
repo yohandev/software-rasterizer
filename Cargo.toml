@@ -6,4 +6,4 @@ edition = "2018"
 
 [dependencies]
 framework = { path = "framework" }
-obj-rs = "0.6.2"
+tobj = "2.0.3"

@@ -34,12 +34,12 @@ impl App for MyApp
                 .scaled_3d([150.0, -150.0, 150.0]);
 
             // reframe
-            v0 = v0 * t + size / 2.0;
-            v1 = v1 * t + size / 2.0;
-            v2 = v2 * t + size / 2.0;
+            v0.pos = v0.pos * t + size / 2.0;
+            v1.pos = v1.pos * t + size / 2.0;
+            v2.pos = v2.pos * t + size / 2.0;
 
             // lighting
-            let n = (v2 - v0).cross(v1 - v0).normalized();
+            let n = (v2.pos - v0.pos).cross(v1.pos - v0.pos).normalized();
             let l = (n.dot(light_dir)).clamped_minus1_1().powi(2);
 
             // visible face
@@ -49,7 +49,7 @@ impl App for MyApp
                 let col = Rgb::broadcast((l * 255.0) as u8).into();
 
                 // draw mesh
-                draw::triangle(frame, &mut depth, [v0, v1, v2], col);
+                draw::triangle(frame, &mut depth, [v0.pos, v1.pos, v2.pos], col);
 
                 // // prepare wireframe
                 // let pts = [v0.xy().as_(), v1.xy().as_(), v2.xy().as_()];

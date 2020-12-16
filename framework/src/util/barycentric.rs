@@ -6,7 +6,7 @@ use crate::math::*;
 /// barycentric coordinates
 pub trait Barycentric<T, V>
 {
-    /// convert this point into its barycentric coordinates in
+    /// convert this vector into its barycentric coordinates in
     /// a triangle composed of vertices a, b, and c
     fn into_barycentric(self, tri: [Vec2<T>; 3]) -> Vec3<V>;
 }
