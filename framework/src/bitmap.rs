@@ -1,3 +1,5 @@
+use std::ops::{ Index, IndexMut };
+
 use rayon::prelude::*;
 
 use crate::math::*;
@@ -288,3 +290,73 @@ impl<T: Buf> Bitmap<T>
 
 /// blanket implementation
 impl<T: AsRef<[u8]> + AsMut<[u8]>> Buf for T { }
+
+impl<T: Buf> Index<Vec2<i32>> for Bitmap<T>
+{
+    type Output = Rgba<u8>;
+
+    /// get the pixel color at the given position in pixels. panics if
+    /// out of bound
+    #[inline]
+    fn index(&self, pos: Vec2<i32>) -> &Self::Output
+    {
+        // index
+        let ind = pos.y as usize * self.width() + pos.x as usize;
+
+        // get
+        &self.pixels()[ind]
+    }
+}
+
+impl<T: Buf> IndexMut<Vec2<i32>> for Bitmap<T>
+{
+    /// get the pixel color at the given position in pixels. panics if
+    /// out of bound
+    #[inline]
+    fn index_mut(&mut self, pos: Vec2<i32>) -> &mut Self::Output
+    {
+        // index
+        let ind = pos.y as usize * self.width() + pos.x as usize;
+
+        // get
+        &mut self.pixels_mut()[ind]
+    }
+}
+
+impl<T: Buf> Index<Vec2<f32>> for Bitmap<T>
+{
+    type Output = Rgba<u8>;
+
+    /// get the pixel color at the given position in percentage. 
+    /// the input must be within the `0.0..=1.0` range, panics if
+    /// out of bound
+    #[inline]
+    fn index(&self, pos: Vec2<f32>) -> &Self::Output
+    {
+        // index
+        let x = pos.x * (self.width() - 1) as f32;
+        let y = pos.y * (self.height() - 1) as f32;
+        let ind = y as usize * self.width() + x as usize;
+
+        // get
+        &self.pixels()[ind]
+    }
+}
+
+impl<T: Buf> IndexMut<Vec2<f32>> for Bitmap<T>
+{
+    /// get the pixel color at the given position in percentage. 
+    /// the input must be within the `0.0..=1.0` range, panics if
+    /// out of bound
+    #[inline]
+    fn index_mut(&mut self, pos: Vec2<f32>) -> &mut Self::Output
+    {
+        // index
+        let x = pos.x * (self.width() - 1) as f32;
+        let y = pos.y * (self.height() - 1) as f32;
+        let ind = y as usize * self.width() + x as usize;
+
+        // get
+        &mut self.pixels_mut()[ind]
+    }
+}

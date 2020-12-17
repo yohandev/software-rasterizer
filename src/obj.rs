@@ -43,7 +43,7 @@ impl Obj
     /// read a new wavefront object from its path. assumes the vertices
     /// have all position, normal, and texture coordinates. all faces must
     /// be triangular
-    pub fn load(path: &str) -> Self
+    pub fn open(path: &str) -> Self
     {
         // load .obj
         let (models, _) = tobj::load_obj(path, true).unwrap();

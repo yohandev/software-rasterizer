@@ -20,7 +20,7 @@ pub fn line(frame: &mut Frame, a: Vec2<i32>, b: Vec2<i32>, col: Rgba<u8>)
 
 /// draw a triangle on top of the given bitmap. pixels out of
 /// bound will be clipped
-pub fn triangle(frame: &mut Frame, depth: &mut [f32], tri: [Vertex; 3], col: Rgba<u8>)
+pub fn triangle(frame: &mut Frame, depth: &mut [f32], tex: &Image, tri: [Vertex; 3], col: Rgba<u8>)
 {
     // convert
     let max = frame.size().as_();
@@ -41,8 +41,6 @@ pub fn triangle(frame: &mut Frame, depth: &mut [f32], tri: [Vertex; 3], col: Rgb
             // triangle UV
             let u = tri[0].tex.x * br.x + tri[1].tex.x * br.y + tri[2].tex.x * br.z;
             let v = tri[0].tex.y * br.y + tri[1].tex.y * br.y + tri[2].tex.y * br.z;
-
-            
 
             // draw triangle
             frame.set(pt, col);

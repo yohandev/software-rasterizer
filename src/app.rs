@@ -8,6 +8,7 @@ pub struct MyApp
 {
     light: Vec3<f32>,
 
+    tex: Image,
     obj: Obj,
 }
 
@@ -81,7 +82,9 @@ impl Default for MyApp
         Self
         {
             light: Vec3::zero(),
-            obj: Obj::load("res/head.obj"),
+
+            tex: Image::open("res/head_diffuse.tga").unwrap(),
+            obj: Obj::open("res/head.obj"),
         }
     }
 }
