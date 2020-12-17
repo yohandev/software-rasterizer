@@ -47,11 +47,8 @@ impl App for MyApp
             // visible face
             if l > 0.0
             {
-                // lighting color
-                let col = Rgb::broadcast((l * 255.0) as u8).into();
-
                 // draw mesh
-                draw::triangle(frame, &mut depth, [v0, v1, v2], col);
+                draw::triangle(frame, &mut depth, [v0, v1, v2], &self.tex, l);
 
                 // // prepare wireframe
                 // let pts = [v0.xy().as_(), v1.xy().as_(), v2.xy().as_()];
