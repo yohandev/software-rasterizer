@@ -41,7 +41,7 @@ impl App for MyApp
             v2.pos = v2.pos * t + size / 2.0;
 
             // lighting
-            let n = (v2.pos - v0.pos).cross(v1.pos - v0.pos).normalized();
+            let n = (v0.nor + v1.nor + v2.nor) / 3.0;
             let l = (n.dot(light_dir)).clamped_minus1_1().powi(2);
 
             // visible face
