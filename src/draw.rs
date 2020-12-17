@@ -42,6 +42,7 @@ pub fn triangle(frame: &mut Frame, depth: &mut [f32], tri: [Vertex; 3], tex: &Im
             let u = tri[0].tex.x * br.x + tri[1].tex.x * br.y + tri[2].tex.x * br.z;
             let v = tri[0].tex.y * br.x + tri[1].tex.y * br.y + tri[2].tex.y * br.z;
 
+            // texture * lighting
             let col = tex[Vec2::new(u, 1.0 - v)].map(|p| (p as f32 * light) as u8);
 
             // draw triangle
