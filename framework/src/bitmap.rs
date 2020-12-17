@@ -7,9 +7,9 @@ use crate::math::*;
 pub struct Bitmap<T: Buf>
 {
     /// inner byte array representing this bitmap
-    inner: T,
+    pub(crate) inner: T,
     /// width and height, in pixels, of this bitmap
-    size: Extent2<usize>,
+    pub(crate) size: Extent2<usize>,
 }
 
 /// restrictions for a type that can be used as a bitmap

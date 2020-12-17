@@ -7,6 +7,7 @@ use crate::draw;
 pub struct MyApp
 {
     light: Vec3<f32>,
+
     obj: Obj,
 }
 
@@ -49,7 +50,7 @@ impl App for MyApp
                 let col = Rgb::broadcast((l * 255.0) as u8).into();
 
                 // draw mesh
-                draw::triangle(frame, &mut depth, [v0.pos, v1.pos, v2.pos], col);
+                draw::triangle(frame, &mut depth, [v0, v1, v2], col);
 
                 // // prepare wireframe
                 // let pts = [v0.xy().as_(), v1.xy().as_(), v2.xy().as_()];
