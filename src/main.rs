@@ -1,3 +1,4 @@
+mod shader;
 mod draw;
 mod app;
 mod obj;
